@@ -223,6 +223,11 @@
         subtitle.innerText = 'Complete student profiles, admission records, medical notes, and academic assignments';
         quickActions.innerHTML = '';
         renderStudentsView(content);
+      } else if (activeTab === 'classes') {
+        title.innerText = 'Classes, Capacity & Timetable Schedule';
+        subtitle.innerText = 'Preschool class levels (Playgroup, Nursery, LKG, UKG) and standard daily timetable';
+        quickActions.innerHTML = '';
+        renderClassesView(content);
       } else if (activeTab === 'fees') {
         title.innerText = 'Fees, Invoicing & Payments';
         subtitle.innerText = 'Collection history, overdue fee tracking, and instant printable fee receipt generation';
@@ -248,6 +253,11 @@
         subtitle.innerText = '15 Full specification reports ready for CSV download & print preview';
         quickActions.innerHTML = '';
         renderReportsView(content);
+      } else if (activeTab === 'settings') {
+        title.innerText = 'Role-Based Permissions Matrix';
+        subtitle.innerText = 'System permissions for Admin, Department Heads (HOD), and Classroom Teachers';
+        quickActions.innerHTML = '';
+        renderSettingsView(content);
       } else if (activeTab === 'leaves') {
         title.innerText = 'Staff Leave Approvals';
         subtitle.innerText = 'Review and manage staff leave applications and substitution schedules';
@@ -421,6 +431,127 @@
         </div>
       `;
       lucide.createIcons();
+    }
+
+    function renderClassesView(container) {
+      const classLevels = [
+        { name: 'Playgroup', age: '2 - 3 Years', capacity: 15, teacher: 'Playgroup Lead Teacher', room: 'Room 101', color: 'sky' },
+        { name: 'Nursery', age: '3 - 4 Years', capacity: 20, teacher: 'Nursery Lead Teacher', room: 'Room 102', color: 'indigo' },
+        { name: 'LKG', age: '4 - 5 Years', capacity: 25, teacher: 'LKG Lead Teacher', room: 'Room 201', color: 'purple' },
+        { name: 'UKG', age: '5 - 6 Years', capacity: 25, teacher: 'UKG Lead Teacher', room: 'Room 202', color: 'emerald' }
+      ];
+
+      const timetable = [
+        { time: '09:00 AM - 09:30 AM', activity: 'Morning Assembly, Prayer & Circle Time', icon: 'sun' },
+        { time: '09:30 AM - 10:30 AM', activity: 'Phonics, Rhymes & Language Exploration', icon: 'book-open' },
+        { time: '10:30 AM - 11:00 AM', activity: 'Healthy Snack & Hygiene Break', icon: 'coffee' },
+        { time: '11:00 AM - 11:45 AM', activity: 'Number Concepts & STEM Sensory Play', icon: 'blocks' },
+        { time: '11:45 AM - 12:30 PM', activity: 'Outdoor Playground & Creative Art', icon: 'palette' },
+        { time: '12:30 PM - 01:00 PM', activity: 'Daily Packup & Parent Handover', icon: 'log-out' }
+      ];
+
+      container.innerHTML = `
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          ${classLevels.map(c => {
+            const enrolledCount = STUDENTS.filter(s => s.class === c.name).length;
+            const percentage = Math.min(100, Math.round((enrolledCount / c.capacity) * 100));
+            return `
+              <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <span class="bg-sky-100 text-sky-700 px-2 py-0.5 rounded text-[10px] font-extrabold uppercase">Active Level</span>
+                    <h3 class="text-xl font-extrabold text-slate-800 mt-1">${c.name}</h3>
+                    <p class="text-xs text-slate-400 font-medium">Age Group: ${c.age}</p>
+                  </div>
+                  <span class="text-xs font-mono font-bold bg-slate-100 px-2 py-1 rounded text-slate-600">${c.room}</span>
+                </div>
+
+                <div class="pt-2 border-t border-slate-100 space-y-1.5 text-xs text-slate-600">
+                  <div class="flex justify-between">
+                    <span class="text-slate-400 font-semibold">Enrolled Strength:</span>
+                    <span class="font-bold text-slate-800">${enrolledCount} / ${c.capacity}</span>
+                  </div>
+                  <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                    <div class="bg-sky-600 h-2 rounded-full" style="width: ${percentage}%"></div>
+                  </div>
+                  <p class="text-[11px] text-slate-500 pt-1"><strong>Class Teacher:</strong> ${c.teacher}</p>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <div class="flex justify-between items-center border-b pb-4">
+            <div>
+              <h3 class="font-extrabold text-slate-900 text-base">Standard Preschool Daily Activity Schedule</h3>
+              <p class="text-xs text-slate-500">Master daily timetable followed across Playgroup, Nursery, LKG, and UKG classrooms</p>
+            </div>
+            <span class="bg-sky-50 text-sky-700 px-3 py-1 rounded-xl text-xs font-bold border border-sky-100">Monday - Friday</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            ${timetable.map(t => `
+              <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center space-x-3">
+                <div class="p-2.5 bg-sky-100 text-sky-700 rounded-xl">
+                  <i data-lucide="${t.icon}" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <p class="text-xs font-mono font-bold text-sky-600">${t.time}</p>
+                  <p class="text-xs font-bold text-slate-800 mt-0.5">${t.activity}</p>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+      lucide.createIcons();
+    }
+
+    function renderSettingsView(container) {
+      const permissions = [
+        { module: 'Core Dashboard', admin: 'Full Access', hod: 'View Only', teacher: 'Class Scope Only' },
+        { module: 'Students Master Directory', admin: 'Add, Edit, Delete', hod: 'View Scope', teacher: 'View Class Only' },
+        { module: 'New Admissions', admin: 'Full Access', hod: 'View Only', teacher: 'No Access' },
+        { module: 'Classes & Timetable', admin: 'Full Access', hod: 'Full Access', teacher: 'View Only' },
+        { module: 'Student Attendance Register', admin: 'Full Edit Override', hod: 'Review & Edit', teacher: 'Mark Daily Register' },
+        { module: 'Fees & Payments', admin: 'Full Access & Receipts', hod: 'No Access', teacher: 'No Access' },
+        { module: 'Staff & Payroll Management', admin: 'Full Salary Access', hod: 'No Access', teacher: 'View Own Payslip' },
+        { module: 'Expense Logger', admin: 'Add & Log Expenses', hod: 'No Access', teacher: 'No Access' },
+        { module: '15 System Reports', admin: 'All 15 Reports', hod: 'Academic Reports', teacher: 'No Access' }
+      ];
+
+      container.innerHTML = `
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden space-y-4">
+          <div class="p-4 border-b border-slate-100 bg-slate-50">
+            <h3 class="font-extrabold text-slate-900 text-base">Role-Based Access Control (RBAC) Permissions Matrix</h3>
+            <p class="text-xs text-slate-500">Security permissions for Admin, Department Heads (HOD), and Classroom Teachers</p>
+          </div>
+
+          <div class="overflow-x-auto p-4 pt-0">
+            <table class="w-full text-left text-sm text-slate-600">
+              <thead class="bg-slate-100 text-slate-700 font-bold text-xs uppercase tracking-wider">
+                <tr>
+                  <th class="p-4">ERP Module</th>
+                  <th class="p-4">👑 Admin (Principal / Owner)</th>
+                  <th class="p-4">🎓 HOD (Department Head)</th>
+                  <th class="p-4">👩‍🏫 Classroom Teacher</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                ${permissions.map(p => `
+                  <tr class="hover:bg-slate-50">
+                    <td class="p-4 font-bold text-slate-800">${p.module}</td>
+                    <td class="p-4"><span class="bg-sky-100 text-sky-700 px-2 py-0.5 rounded text-xs font-bold">${p.admin}</span></td>
+                    <td class="p-4"><span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-xs font-bold">${p.hod}</span></td>
+                    <td class="p-4"><span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded text-xs font-bold">${p.teacher}</span></td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
     }
 
     function renderFeesView(container) {
