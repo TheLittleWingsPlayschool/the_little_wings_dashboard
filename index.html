@@ -68,7 +68,7 @@
           <img src="logo.jpeg" alt="Logo" class="w-10 h-10 object-contain rounded-lg border border-slate-200 shadow-sm" />
           <div>
             <h3 class="font-extrabold text-xs text-slate-800 leading-tight">The Little Wings</h3>
-            <p class="text-[10px] text-sky-600 font-bold">Preschool ERP V1.0.5 (Updated)</p>
+            <p class="text-[10px] text-sky-600 font-bold">Preschool ERP V1.0.7 (Sample Data Active)</p>
           </div>
         </div>
 
@@ -127,14 +127,83 @@
     let currentUser = USERS.admin1;
     let activeTab = 'dashboard';
 
-    // BROWSER LOCAL STORAGE PERSISTENCE ENGINE
-    let STUDENTS = JSON.parse(localStorage.getItem('LW_STUDENTS')) || [];
+    const getTodayDateStr = () => new Date().toISOString().split('T')[0];
+
+    // =========================================================================
+    // SAMPLE DEMO DATASETS FOR INITIAL LAUNCH
+    // =========================================================================
+
+    const SAMPLE_STUDENTS = [
+      { id: 's101', student_id: 'LW-2026-001', name: 'Mohammad Aaliya Kulsum', class: 'Playgroup', section: 'A', dob: '2023-05-14', gender: 'Girl', status: 'Active', admission_date: '2026-04-01', father: 'Mohammad Hidayatulla', mother: 'Fatima Zohra', mobile: '9876543210', emergency: '9876543210', address: 'Main Campus Enclave', medical: 'None', pickup: 'Parents' },
+      { id: 's102', student_id: 'LW-2026-002', name: 'Advait Nair', class: 'Nursery', section: 'A', dob: '2022-08-20', gender: 'Boy', status: 'Active', admission_date: '2026-04-02', father: 'Rajeshan Nair', mother: 'Priya Nair', mobile: '9845012345', emergency: '9845012345', address: 'Green Glen Layout', medical: 'None', pickup: 'Parents' },
+      { id: 's103', student_id: 'LW-2026-003', name: 'Ananya Sharma', class: 'LKG', section: 'A', dob: '2021-11-10', gender: 'Girl', status: 'Active', admission_date: '2026-04-05', father: 'Amit Sharma', mother: 'Neha Sharma', mobile: '9731298765', emergency: '9731298765', address: 'Sunrise Apartments', medical: 'Asthma Mild', pickup: 'School Van' },
+      { id: 's104', student_id: 'LW-2026-004', name: 'Vihaan Reddy', class: 'UKG', section: 'A', dob: '2020-09-04', gender: 'Boy', status: 'Active', admission_date: '2026-04-07', father: 'Srinivas Reddy', mother: 'Kavitha Reddy', mobile: '9900112233', emergency: '9900112233', address: 'Rosewood Villas', medical: 'None', pickup: 'Parents' },
+      { id: 's105', student_id: 'LW-2026-005', name: 'Zoya Khan', class: 'Playgroup', section: 'A', dob: '2023-01-25', gender: 'Girl', status: 'Active', admission_date: '2026-04-10', father: 'Tariq Khan', mother: 'Sana Khan', mobile: '9811223344', emergency: '9811223344', address: 'Lakeview Heights', medical: 'None', pickup: 'Parents' }
+    ];
+
+    const SAMPLE_PAYMENTS = [
+      { id: 'p101', receipt_no: 'REC-2026-001', student_id: 'LW-2026-001', student_name: 'Mohammad Aaliya Kulsum', class: 'Playgroup - A', father: 'Mohammad Hidayatulla', mobile: '9876543210', fee_type: 'Tuition Fee', month: 'Term 1 (Apr - Aug)', total: 15000, paid: 15000, balance: 0, mode: 'UPI / PhonePe / GPay', date: '2026-04-01' },
+      { id: 'p102', receipt_no: 'REC-2026-002', student_id: 'LW-2026-002', student_name: 'Advait Nair', class: 'Nursery - A', father: 'Rajeshan Nair', mobile: '9845012345', fee_type: 'Admission Fee', month: 'Annual 2026-27', total: 8000, paid: 8000, balance: 0, mode: 'Cash', date: '2026-04-02' },
+      { id: 'p103', receipt_no: 'REC-2026-003', student_id: 'LW-2026-003', student_name: 'Ananya Sharma', class: 'LKG - A', father: 'Amit Sharma', mobile: '9731298765', fee_type: 'Annual Activity & Sports Fee', month: 'April 2026', total: 6000, paid: 4000, balance: 2000, mode: 'UPI / PhonePe / GPay', date: '2026-04-05' }
+    ];
+
+    const SAMPLE_EXPENSES = [
+      { id: 'e101', date: '2026-04-03', category: 'Toys & Teaching Materials', description: 'Montessori Wooden Learning Blocks & Puzzles', amount: 4500, mode: 'UPI', paid_by: 'System Admin', receipt: 'VOUCH-101' },
+      { id: 'e102', date: '2026-04-10', category: 'Food & Snacks', description: 'Fresh Fruits & Organic Milk Supply (Monthly)', amount: 6200, mode: 'Cash', paid_by: 'HOD Operations', receipt: 'VOUCH-102' },
+      { id: 'e103', date: '2026-04-15', category: 'Stationery', description: 'Drawing Books, Crayons, Watercolors & Worksheets', amount: 3800, mode: 'UPI', paid_by: 'System Admin', receipt: 'VOUCH-103' }
+    ];
+
+    const SAMPLE_STAFF = [
+      { emp_id: 'EMP-001', name: 'Deepa Varma', role: 'Nursery Lead Teacher', class_assigned: 'Nursery-A', basic: 25000, allowances: 3000, overtime: 1000, advances: 0, deductions: 500, net: 28500, status: 'Paid' },
+      { emp_id: 'EMP-002', name: 'Shalini Rao', role: 'Playgroup Lead Teacher', class_assigned: 'Playgroup-A', basic: 24000, allowances: 2500, overtime: 500, advances: 0, deductions: 500, net: 26500, status: 'Paid' },
+      { emp_id: 'EMP-003', name: 'Anita Kulkarni', role: 'LKG Lead Teacher', class_assigned: 'LKG-A', basic: 26000, allowances: 3000, overtime: 0, advances: 1000, deductions: 500, net: 27500, status: 'Pending' }
+    ];
+
+    const SAMPLE_ANNOUNCEMENTS = [
+      { title: '🎉 Annual Play School Sports Day 2026', content: 'Join us for fun activities, races, and awards on Friday, May 15th!' },
+      { title: '🎨 Parent-Teacher Orientation Meeting', content: 'Scheduled for Saturday morning 10:00 AM at the Main Campus Auditorium.' }
+    ];
+
+    // =========================================================================
+    // LOCAL STORAGE INITIALIZATION ENGINE WITH PRE-POPULATION
+    // =========================================================================
+
+    let STUDENTS = JSON.parse(localStorage.getItem('LW_STUDENTS'));
+    if (!STUDENTS || STUDENTS.length === 0) {
+      STUDENTS = SAMPLE_STUDENTS;
+    }
+
+    let PAYMENTS = JSON.parse(localStorage.getItem('LW_PAYMENTS'));
+    if (!PAYMENTS || PAYMENTS.length === 0) {
+      PAYMENTS = SAMPLE_PAYMENTS;
+    }
+
+    let EXPENSES = JSON.parse(localStorage.getItem('LW_EXPENSES'));
+    if (!EXPENSES || EXPENSES.length === 0) {
+      EXPENSES = SAMPLE_EXPENSES;
+    }
+
+    let STAFF = JSON.parse(localStorage.getItem('LW_STAFF'));
+    if (!STAFF || STAFF.length === 0) {
+      STAFF = SAMPLE_STAFF;
+    }
+
+    let ANNOUNCEMENTS = JSON.parse(localStorage.getItem('LW_ANNOUNCEMENTS'));
+    if (!ANNOUNCEMENTS || ANNOUNCEMENTS.length === 0) {
+      ANNOUNCEMENTS = SAMPLE_ANNOUNCEMENTS;
+    }
+
     let ATTENDANCE = JSON.parse(localStorage.getItem('LW_ATTENDANCE')) || {};
-    let PAYMENTS = JSON.parse(localStorage.getItem('LW_PAYMENTS')) || [];
-    let EXPENSES = JSON.parse(localStorage.getItem('LW_EXPENSES')) || [];
-    let STAFF = JSON.parse(localStorage.getItem('LW_STAFF')) || [];
-    let ANNOUNCEMENTS = JSON.parse(localStorage.getItem('LW_ANNOUNCEMENTS')) || [];
-    let LEAVES = JSON.parse(localStorage.getItem('LW_LEAVES')) || [];
+
+    // Ensure all students have default attendance & admission dates
+    STUDENTS.forEach(s => {
+      if (!s.admission_date || s.admission_date.trim() === '') {
+        s.admission_date = getTodayDateStr();
+      }
+      if (!ATTENDANCE[s.id]) {
+        ATTENDANCE[s.id] = 'Present';
+      }
+    });
 
     // Class & Section Filter States
     let selectedClassFilter = 'All';
@@ -149,6 +218,9 @@
       localStorage.setItem('LW_ANNOUNCEMENTS', JSON.stringify(ANNOUNCEMENTS));
       localStorage.setItem('LW_LEAVES', JSON.stringify(LEAVES));
     }
+
+    // Save initial pre-populated data
+    saveToLocalStorage();
 
     const NAV_ITEMS = {
       admin: [
@@ -431,28 +503,31 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100">
-                ${filteredStudents.length > 0 ? filteredStudents.map(s => `
-                  <tr class="hover:bg-slate-50">
-                    <td class="p-4 font-mono font-bold text-sky-600">${s.student_id}</td>
-                    <td class="p-4"><p class="font-bold text-slate-900">${s.name}</p><p class="text-xs text-slate-400">DOB: ${s.dob}</p></td>
-                    <td class="p-4 font-semibold text-slate-700 text-xs">${s.admission_date || new Date().toISOString().split('T')[0]}</td>
-                    <td class="p-4"><span class="px-2 py-0.5 rounded text-xs font-bold ${s.gender === 'Boy' ? 'bg-sky-100 text-sky-700' : 'bg-pink-100 text-pink-700'}">${s.gender}</span></td>
-                    <td class="p-4 font-semibold text-slate-700">${s.class} - ${s.section}</td>
-                    <td class="p-4"><p class="text-xs font-semibold text-slate-800">F: ${s.father}</p><p class="text-xs text-slate-500">M: ${s.mother} (${s.mobile})</p></td>
-                    <td class="p-4 font-mono text-xs text-red-600 font-bold">${s.emergency}</td>
-                    <td class="p-4"><span class="bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full text-xs font-extrabold">Active</span></td>
-                    ${isAdmin ? `
-                      <td class="p-4 text-center space-x-1">
-                        <button onclick="openEditStudentModal('${s.id}')" title="Edit Student Profile" class="p-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg font-bold text-xs">
-                          <i data-lucide="pencil" class="w-4 h-4"></i>
-                        </button>
-                        <button onclick="deleteStudent('${s.id}')" title="Delete Student Record" class="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-bold text-xs">
-                          <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
-                      </td>
-                    ` : ''}
-                  </tr>
-                `).join('') : `
+                ${filteredStudents.length > 0 ? filteredStudents.map(s => {
+                  const displayDate = s.admission_date && s.admission_date.trim() !== '' ? s.admission_date : getTodayDateStr();
+                  return `
+                    <tr class="hover:bg-slate-50">
+                      <td class="p-4 font-mono font-bold text-sky-600">${s.student_id}</td>
+                      <td class="p-4"><p class="font-bold text-slate-900">${s.name}</p><p class="text-xs text-slate-400">DOB: ${s.dob}</p></td>
+                      <td class="p-4 font-bold text-slate-800 text-xs">${displayDate}</td>
+                      <td class="p-4"><span class="px-2 py-0.5 rounded text-xs font-bold ${s.gender === 'Boy' ? 'bg-sky-100 text-sky-700' : 'bg-pink-100 text-pink-700'}">${s.gender}</span></td>
+                      <td class="p-4 font-semibold text-slate-700">${s.class} - ${s.section}</td>
+                      <td class="p-4"><p class="text-xs font-semibold text-slate-800">F: ${s.father}</p><p class="text-xs text-slate-500">M: ${s.mother} (${s.mobile})</p></td>
+                      <td class="p-4 font-mono text-xs text-red-600 font-bold">${s.emergency}</td>
+                      <td class="p-4"><span class="bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full text-xs font-extrabold">Active</span></td>
+                      ${isAdmin ? `
+                        <td class="p-4 text-center space-x-1">
+                          <button onclick="openEditStudentModal('${s.id}')" title="Edit Student Profile" class="p-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg font-bold text-xs">
+                            <i data-lucide="pencil" class="w-4 h-4"></i>
+                          </button>
+                          <button onclick="deleteStudent('${s.id}')" title="Delete Student Record" class="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-bold text-xs">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                          </button>
+                        </td>
+                      ` : ''}
+                    </tr>
+                  `;
+                }).join('') : `
                   <tr>
                     <td colspan="${isAdmin ? 9 : 8}" class="p-12 text-center text-slate-400">
                       <i data-lucide="users" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
@@ -553,7 +628,7 @@
 
       const modalOverlay = document.getElementById('modalOverlay');
       const modalContainer = document.getElementById('modalContainer');
-      const today = new Date().toISOString().split('T')[0];
+      const today = getTodayDateStr();
 
       modalContainer.innerHTML = `
         <h3 class="font-bold text-slate-900 text-lg border-b pb-2 flex items-center justify-between">
@@ -662,7 +737,7 @@
       const paid = parseFloat(document.getElementById('fee_paid').value) || 0;
       const balance = Math.max(0, total - paid);
       const mode = document.getElementById('fee_mode').value;
-      const payDate = document.getElementById('fee_date').value || new Date().toISOString().split('T')[0];
+      const payDate = document.getElementById('fee_date').value || getTodayDateStr();
 
       const currentYear = new Date().getFullYear();
       const receiptNo = `REC-${currentYear}-${String(PAYMENTS.length + 1).padStart(3, '0')}`;
@@ -908,7 +983,7 @@
     }
 
     function renderAttendanceView(container) {
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = getTodayDateStr();
       const classes = ['All', 'Playgroup', 'Nursery', 'LKG', 'UKG'];
       const sections = ['All', 'A', 'B', 'C'];
 
@@ -1165,7 +1240,7 @@
 
       const modalOverlay = document.getElementById('modalOverlay');
       const modalContainer = document.getElementById('modalContainer');
-      const today = new Date().toISOString().split('T')[0];
+      const today = getTodayDateStr();
 
       modalContainer.innerHTML = `
         <h3 class="font-bold text-slate-900 text-lg border-b pb-2">New Student Admission Form</h3>
@@ -1240,7 +1315,7 @@
       const gender = document.getElementById('new_gender').value || 'Boy';
       const className = document.getElementById('new_class').value;
       const section = document.getElementById('new_sec').value;
-      const admDate = document.getElementById('new_adm_date').value || new Date().toISOString().split('T')[0];
+      const admDate = document.getElementById('new_adm_date').value || getTodayDateStr();
       const dob = document.getElementById('new_dob').value || '2021-04-12';
       const father = document.getElementById('new_father').value || 'Father';
       const mother = document.getElementById('new_mother').value || 'Mother';
@@ -1315,6 +1390,8 @@
       const student = STUDENTS.find(s => s.id === studentId);
       if (!student) return;
 
+      const admDateVal = (student.admission_date && student.admission_date.trim() !== '') ? student.admission_date : getTodayDateStr();
+
       const modalOverlay = document.getElementById('modalOverlay');
       const modalContainer = document.getElementById('modalContainer');
 
@@ -1355,7 +1432,7 @@
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="font-bold text-slate-700">Admission Date</label>
-              <input id="edit_adm_date" type="date" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500 font-semibold" value="${student.admission_date || ''}">
+              <input id="edit_adm_date" type="date" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500 font-semibold" value="${admDateVal}">
             </div>
             <div>
               <label class="font-bold text-slate-700">Date of Birth</label>
@@ -1402,7 +1479,7 @@
       student.gender = document.getElementById('edit_gender').value;
       student.class = document.getElementById('edit_class').value;
       student.section = document.getElementById('edit_sec').value;
-      student.admission_date = document.getElementById('edit_adm_date').value;
+      student.admission_date = document.getElementById('edit_adm_date').value || getTodayDateStr();
       student.dob = document.getElementById('edit_dob').value;
       student.father = document.getElementById('edit_father').value;
       student.mother = document.getElementById('edit_mother').value;
@@ -1463,7 +1540,7 @@
 
       EXPENSES.unshift({
         id: 'e' + Date.now(),
-        date: new Date().toISOString().split('T')[0],
+        date: getTodayDateStr(),
         category, description, amount, mode: 'UPI', paid_by: currentUser.name, receipt: 'VOUCH-' + Math.floor(100+Math.random()*900)
       });
 
