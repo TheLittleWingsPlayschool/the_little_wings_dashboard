@@ -131,6 +131,10 @@
     let ANNOUNCEMENTS = JSON.parse(localStorage.getItem('LW_ANNOUNCEMENTS')) || [];
     let LEAVES = JSON.parse(localStorage.getItem('LW_LEAVES')) || [];
 
+    // Class & Section Filter States
+    let selectedClassFilter = 'All';
+    let selectedSectionFilter = 'All';
+
     function saveToLocalStorage() {
       localStorage.setItem('LW_STUDENTS', JSON.stringify(STUDENTS));
       localStorage.setItem('LW_ATTENDANCE', JSON.stringify(ATTENDANCE));
@@ -234,8 +238,8 @@
         quickActions.innerHTML = `<button onclick="openCollectFeeModal()" class="bg-emerald-600 text-white px-3 py-2 rounded-lg text-xs font-bold flex items-center space-x-1 shadow"><i data-lucide="credit-card" class="w-4 h-4"></i><span>Collect Fee</span></button>`;
         renderFeesView(content);
       } else if (activeTab === 'attendance') {
-        title.innerText = 'Student Attendance Register';
-        subtitle.innerText = 'Mark daily class attendance, track absent logs, and monitor monthly consistency';
+        title.innerText = 'Student Attendance Register (Class & Section Wise)';
+        subtitle.innerText = 'Select Class Level & Section to view grouped register and mark daily attendance';
         quickActions.innerHTML = '';
         renderAttendanceView(content);
       } else if (activeTab === 'payroll') {
@@ -366,11 +370,38 @@
     function renderStudentsView(container) {
       const buttonLabel = STUDENTS.length === 0 ? '+ Add First Student' : '+ Add Student';
       const isAdmin = currentUser.role === 'admin';
+      const classes = ['All', 'Playgroup', 'Nursery', 'LKG', 'UKG'];
+      const sections = ['All', 'A', 'B', 'C'];
+
+      let filteredStudents = STUDENTS;
+      if (selectedClassFilter !== 'All') {
+        filteredStudents = filteredStudents.filter(s => s.class === selectedClassFilter);
+      }
+      if (selectedSectionFilter !== 'All') {
+        filteredStudents = filteredStudents.filter(s => s.section === selectedSectionFilter);
+      }
 
       container.innerHTML = `
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-            <input type="text" placeholder="Search student name, ID or parent..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-sm w-72 outline-none focus:border-sky-500">
+          <div class="p-4 border-b border-slate-100 flex flex-wrap justify-between items-center gap-3 bg-slate-50">
+            <div class="flex items-center space-x-3">
+              <input type="text" placeholder="Search student name, ID or parent..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-sm w-64 outline-none focus:border-sky-500">
+              
+              <div class="flex items-center space-x-1.5 text-xs bg-white border px-2.5 py-1 rounded-lg">
+                <span class="font-bold text-slate-400">Class:</span>
+                <select onchange="changeClassFilter(this.value)" class="bg-transparent font-bold text-slate-800 outline-none cursor-pointer">
+                  ${classes.map(c => `<option value="${c}" ${selectedClassFilter === c ? 'selected' : ''}>${c === 'All' ? 'All Classes' : c}</option>`).join('')}
+                </select>
+              </div>
+
+              <div class="flex items-center space-x-1.5 text-xs bg-white border px-2.5 py-1 rounded-lg">
+                <span class="font-bold text-slate-400">Sec:</span>
+                <select onchange="changeSectionFilter(this.value)" class="bg-transparent font-bold text-slate-800 outline-none cursor-pointer">
+                  ${sections.map(sec => `<option value="${sec}" ${selectedSectionFilter === sec ? 'selected' : ''}>${sec === 'All' ? 'All Sections' : 'Sec ' + sec}</option>`).join('')}
+                </select>
+              </div>
+            </div>
+
             ${isAdmin ? `
               <button onclick="openAddStudentModal()" class="bg-sky-600 hover:bg-sky-700 text-white px-3.5 py-2 rounded-lg text-xs font-bold shadow flex items-center space-x-1">
                 <i data-lucide="plus" class="w-4 h-4"></i>
@@ -395,7 +426,7 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100">
-                ${STUDENTS.length > 0 ? STUDENTS.map(s => `
+                ${filteredStudents.length > 0 ? filteredStudents.map(s => `
                   <tr class="hover:bg-slate-50">
                     <td class="p-4 font-mono font-bold text-sky-600">${s.student_id}</td>
                     <td class="p-4"><p class="font-bold text-slate-900">${s.name}</p><p class="text-xs text-slate-400">DOB: ${s.dob}</p></td>
@@ -420,7 +451,7 @@
                   <tr>
                     <td colspan="${isAdmin ? 9 : 8}" class="p-12 text-center text-slate-400">
                       <i data-lucide="users" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
-                      <p class="font-bold text-slate-600 text-base">No Students Enrolled Yet</p>
+                      <p class="font-bold text-slate-600 text-base">No Students Found</p>
                       ${isAdmin ? `<p class="text-xs mt-1">Click <strong>"+ Add Student"</strong> above to admit a student into Playgroup, Nursery, LKG or UKG.</p>` : ''}
                     </td>
                   </tr>
@@ -433,12 +464,121 @@
       lucide.createIcons();
     }
 
+    function changeClassFilter(val) {
+      selectedClassFilter = val;
+      renderCurrentView();
+    }
+
+    function changeSectionFilter(val) {
+      selectedSectionFilter = val;
+      renderCurrentView();
+    }
+
+    // =========================================================================
+    // CLASS & SECTION WISE ATTENDANCE REGISTER ENGINE
+    // =========================================================================
+
+    function renderAttendanceView(container) {
+      const todayStr = new Date().toISOString().split('T')[0];
+      const classes = ['All', 'Playgroup', 'Nursery', 'LKG', 'UKG'];
+      const sections = ['All', 'A', 'B', 'C'];
+
+      let filteredStudents = STUDENTS;
+      if (selectedClassFilter !== 'All') {
+        filteredStudents = filteredStudents.filter(s => s.class === selectedClassFilter);
+      }
+      if (selectedSectionFilter !== 'All') {
+        filteredStudents = filteredStudents.filter(s => s.section === selectedSectionFilter);
+      }
+
+      // Group students by Class & Section
+      const groups = {};
+      filteredStudents.forEach(s => {
+        const key = `${s.class} - Section ${s.section}`;
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(s);
+      });
+
+      container.innerHTML = `
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+          <!-- Class & Section Selector Header -->
+          <div class="flex flex-wrap justify-between items-center gap-4 border-b pb-4">
+            <div>
+              <h3 class="font-extrabold text-slate-900 text-base">Class Attendance Register — ${todayStr}</h3>
+              <p class="text-xs text-slate-500">Separated Class Level & Section Wise with real-time present counts</p>
+            </div>
+
+            <div class="flex items-center space-x-3 text-xs">
+              <div class="flex items-center space-x-1.5 bg-slate-50 px-3 py-1.5 border rounded-xl">
+                <span class="font-bold text-slate-500">Filter Class:</span>
+                <select onchange="changeClassFilter(this.value)" class="bg-transparent font-bold text-slate-800 outline-none cursor-pointer">
+                  ${classes.map(c => `<option value="${c}" ${selectedClassFilter === c ? 'selected' : ''}>${c === 'All' ? 'All Classes' : c}</option>`).join('')}
+                </select>
+              </div>
+
+              <div class="flex items-center space-x-1.5 bg-slate-50 px-3 py-1.5 border rounded-xl">
+                <span class="font-bold text-slate-500">Filter Section:</span>
+                <select onchange="changeSectionFilter(this.value)" class="bg-transparent font-bold text-slate-800 outline-none cursor-pointer">
+                  ${sections.map(sec => `<option value="${sec}" ${selectedSectionFilter === sec ? 'selected' : ''}>${sec === 'All' ? 'All Sections' : 'Section ' + sec}</option>`).join('')}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Grouped Class & Section Attendance Cards -->
+          ${Object.keys(groups).length > 0 ? Object.keys(groups).map(groupKey => {
+            const groupStudents = groups[groupKey];
+            const presentCount = groupStudents.filter(s => (ATTENDANCE[s.id] || 'Present') === 'Present').length;
+            const absentCount = groupStudents.length - presentCount;
+
+            return `
+              <div class="border border-slate-200 rounded-2xl p-4 bg-slate-50/50 space-y-3 shadow-sm">
+                <div class="flex justify-between items-center border-b pb-2.5">
+                  <div class="flex items-center space-x-2">
+                    <span class="bg-sky-600 text-white p-1.5 rounded-lg shadow-sm"><i data-lucide="book-open" class="w-4 h-4"></i></span>
+                    <h4 class="font-extrabold text-slate-900 text-sm tracking-tight">${groupKey}</h4>
+                  </div>
+                  <div class="flex space-x-2 text-[11px] font-bold">
+                    <span class="bg-sky-100 text-sky-700 px-2.5 py-0.5 rounded-full">Total: ${groupStudents.length}</span>
+                    <span class="bg-emerald-100 text-emerald-700 px-2.5 py-0.5 rounded-full">Present: ${presentCount}</span>
+                    <span class="bg-red-100 text-red-700 px-2.5 py-0.5 rounded-full">Absent: ${absentCount}</span>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  ${groupStudents.map(s => `
+                    <div class="p-3.5 bg-white rounded-xl border ${ATTENDANCE[s.id] === 'Absent' ? 'border-red-300 bg-red-50/30' : 'border-emerald-200'} flex justify-between items-center shadow-sm">
+                      <div>
+                        <p class="font-bold text-slate-900 text-xs">${s.name}</p>
+                        <p class="text-[10px] text-slate-400 font-mono mt-0.5">${s.student_id} • ${s.gender}</p>
+                      </div>
+                      <select onchange="toggleAttendance('${s.id}', this.value)" class="bg-white border text-xs font-extrabold px-2.5 py-1 rounded-lg outline-none cursor-pointer ${ATTENDANCE[s.id] === 'Absent' ? 'text-red-600 border-red-300' : 'text-emerald-700 border-emerald-300'}">
+                        <option value="Present" ${ATTENDANCE[s.id] !== 'Absent' ? 'selected' : ''}>Present</option>
+                        <option value="Absent" ${ATTENDANCE[s.id] === 'Absent' ? 'selected' : ''}>Absent</option>
+                      </select>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            `;
+          }).join('') : `
+            <div class="p-12 text-center text-slate-400">
+              <i data-lucide="calendar-check" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
+              <p class="font-bold text-slate-600">No Students Found for Selected Class & Section</p>
+              <p class="text-xs mt-1">Try selecting "All Classes" and "All Sections" from the filter dropdown above.</p>
+            </div>
+          `}
+        </div>
+      `;
+      lucide.createIcons();
+    }
+
     function renderClassesView(container) {
       const classLevels = [
-        { name: 'Playgroup', age: '2 - 3 Years', capacity: 15, teacher: 'Playgroup Lead Teacher', room: 'Room 101', color: 'sky' },
-        { name: 'Nursery', age: '3 - 4 Years', capacity: 20, teacher: 'Nursery Lead Teacher', room: 'Room 102', color: 'indigo' },
-        { name: 'LKG', age: '4 - 5 Years', capacity: 25, teacher: 'LKG Lead Teacher', room: 'Room 201', color: 'purple' },
-        { name: 'UKG', age: '5 - 6 Years', capacity: 25, teacher: 'UKG Lead Teacher', room: 'Room 202', color: 'emerald' }
+        { name: 'Playgroup', age: '2 - 3 Years', capacity: 15, teacher: 'Playgroup Lead Teacher', room: 'Room 101' },
+        { name: 'Nursery', age: '3 - 4 Years', capacity: 20, teacher: 'Nursery Lead Teacher', room: 'Room 102' },
+        { name: 'LKG', age: '4 - 5 Years', capacity: 25, teacher: 'LKG Lead Teacher', room: 'Room 201' },
+        { name: 'UKG', age: '5 - 6 Years', capacity: 25, teacher: 'UKG Lead Teacher', room: 'Room 202' }
       ];
 
       const timetable = [
@@ -602,39 +742,6 @@
       `;
     }
 
-    function renderAttendanceView(container) {
-      container.innerHTML = `
-        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-          <div class="flex justify-between items-center border-b pb-4">
-            <div>
-              <h3 class="font-bold text-slate-900 text-base">Class Attendance Register — ${new Date().toISOString().split('T')[0]}</h3>
-              <p class="text-xs text-slate-500">Teacher marks daily attendance; HOD and Admin hold edit override privileges</p>
-            </div>
-          </div>
-
-          ${STUDENTS.length > 0 ? `
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              ${STUDENTS.map(s => `
-                <div class="p-4 rounded-xl border ${ATTENDANCE[s.id] === 'Present' ? 'bg-emerald-50/50 border-emerald-200' : 'bg-red-50/50 border-red-200'} flex justify-between items-center">
-                  <div><p class="font-bold text-slate-900 text-sm">${s.name}</p><p class="text-xs text-slate-500">${s.class} - ${s.section} (${s.gender})</p></div>
-                  <select onchange="toggleAttendance('${s.id}', this.value)" class="bg-white border rounded px-2 py-1 text-xs font-bold outline-none">
-                    <option value="Present">Present</option>
-                    <option value="Absent">Absent</option>
-                  </select>
-                </div>
-              `).join('')}
-            </div>
-          ` : `
-            <div class="p-12 text-center text-slate-400">
-              <i data-lucide="calendar-check" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
-              <p class="font-bold text-slate-600">No Students Available for Attendance</p>
-              <p class="text-xs mt-1">Admit students first to start marking class attendance.</p>
-            </div>
-          `}
-        </div>
-      `;
-    }
-
     function renderPayrollView(container) {
       container.innerHTML = `
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
@@ -783,6 +890,7 @@
     function toggleAttendance(studentId, newStatus) {
       ATTENDANCE[studentId] = newStatus;
       saveToLocalStorage();
+      renderCurrentView();
     }
 
     function downloadCsv(reportName) {
