@@ -620,6 +620,10 @@
       `;
     }
 
+    // =========================================================================
+    // INTERACTIVE ACTIONS & DYNAMIC STUDENT ID GENERATOR (LW-2026-001)
+    // =========================================================================
+
     function toggleAttendance(studentId, newStatus) {
       ATTENDANCE[studentId] = newStatus;
     }
@@ -661,8 +665,11 @@
       const father = document.getElementById('new_father').value || 'Parent';
       const mobile = document.getElementById('new_mobile').value || '9900000000';
 
+      // DYNAMIC STUDENT ID GENERATION (Format: LW-2026-001)
+      const currentYear = new Date().getFullYear(); // 2026
+      const seqNum = String(STUDENTS.length + 1).padStart(3, '0'); // 001, 002, 003...
+      const student_id = `LW-${currentYear}-${seqNum}`;
       const newId = 's' + (STUDENTS.length + 1);
-      const student_id = 'LW-2024-00' + (STUDENTS.length + 1);
 
       STUDENTS.push({
         id: newId, student_id, name, class: className, section, dob: '2021-01-01', gender: 'Boy', status: 'Active',
