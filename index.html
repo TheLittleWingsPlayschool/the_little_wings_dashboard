@@ -216,19 +216,17 @@
                           currentUser.role === 'hod' ? `Academic Dashboard (${currentUser.name})` :
                           `My Class Dashboard (${currentUser.scope})`;
         subtitle.innerText = 'Real-time preschool indicators, financial health & student attendance';
-        quickActions.innerHTML = currentUser.role === 'admin' ? `
-          <button onclick="openAddStudentModal()" class="bg-sky-600 hover:bg-sky-700 text-white px-3 py-2 rounded-lg text-xs font-bold flex items-center space-x-1 shadow">
-            <i data-lucide="plus" class="w-4 h-4"></i><span>New Admission</span>
-          </button>
-          <button onclick="openAddExpenseModal()" class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-2 rounded-lg text-xs font-bold flex items-center space-x-1 shadow">
-            <i data-lucide="wallet" class="w-4 h-4"></i><span>Log Expense</span>
-          </button>
-        ` : '';
+        quickActions.innerHTML = '';
         renderDashboardView(content);
       } else if (activeTab === 'students') {
         title.innerText = 'Student Directory Master';
         subtitle.innerText = 'Complete student profiles, emergency contacts, medical notes, and academic assignments';
         quickActions.innerHTML = `<button onclick="openAddStudentModal()" class="bg-sky-600 text-white px-3 py-2 rounded-lg text-xs font-bold flex items-center space-x-1 shadow"><i data-lucide="plus" class="w-4 h-4"></i><span>Add Student</span></button>`;
+        renderStudentsView(content);
+      } else if (activeTab === 'admissions') {
+        title.innerText = 'New Student Admissions';
+        subtitle.innerText = 'Register new student entries and auto-generate student registration IDs';
+        quickActions.innerHTML = `<button onclick="openAddStudentModal()" class="bg-sky-600 text-white px-3 py-2 rounded-lg text-xs font-bold flex items-center space-x-1 shadow"><i data-lucide="plus" class="w-4 h-4"></i><span>+ New Admission</span></button>`;
         renderStudentsView(content);
       } else if (activeTab === 'fees') {
         title.innerText = 'Fees, Invoicing & Payments';
@@ -248,7 +246,7 @@
       } else if (activeTab === 'expenses') {
         title.innerText = 'School Expense Logger';
         subtitle.innerText = 'Track categories: Rent, Electricity, Toys, Food/Snacks, Stationery, Maintenance';
-        quickActions.innerHTML = `<button onclick="openAddExpenseModal()" class="bg-amber-600 text-white px-3 py-2 rounded-lg text-xs font-bold flex items-center space-x-1 shadow"><i data-lucide="wallet" class="w-4 h-4"></i><span>Add Expense</span></button>`;
+        quickActions.innerHTML = `<button onclick="openAddExpenseModal()" class="bg-amber-600 text-white px-3 py-2 rounded-lg text-xs font-bold flex items-center space-x-1 shadow"><i data-lucide="wallet" class="w-4 h-4"></i><span>Log Expense</span></button>`;
         renderExpensesView(content);
       } else if (activeTab === 'reports') {
         title.innerText = 'Comprehensive System Reports';
@@ -353,8 +351,7 @@
             </div>
 
             <div class="mt-4 pt-3 border-t border-slate-100 flex justify-between items-center">
-              <p class="text-xs text-slate-400 font-medium">Data Storage: <span class="text-emerald-600 font-bold">● Browser Saved</span></p>
-              <button onclick="clearAllData()" class="text-[10px] text-red-500 hover:text-red-700 underline font-semibold">Reset Saved Data</button>
+              <p class="text-xs text-slate-400 font-medium">Quick System Status: <span class="text-emerald-600 font-bold">● Production Database Active</span></p>
             </div>
           </div>
         </div>
@@ -732,7 +729,7 @@
       });
 
       ATTENDANCE[newId] = 'Present';
-      saveToLocalStorage(); // PERMANENT SAVING IN BROWSER
+      saveToLocalStorage();
       closeModal();
       setActiveTab('students');
     }
@@ -768,17 +765,9 @@
         category, description, amount, mode: 'UPI', paid_by: currentUser.name, receipt: 'VOUCH-' + Math.floor(100+Math.random()*900)
       });
 
-      saveToLocalStorage(); // PERMANENT SAVING IN BROWSER
+      saveToLocalStorage();
       closeModal();
       setActiveTab('expenses');
-    }
-
-    function clearAllData() {
-      if (confirm("Are you sure you want to reset all browser saved data?")) {
-        localStorage.clear();
-        STUDENTS = []; PAYMENTS = []; EXPENSES = []; STAFF = []; ANNOUNCEMENTS = []; LEAVES = []; ATTENDANCE = {};
-        renderSidebar(); renderCurrentView();
-      }
     }
 
     function openCollectFeeModal() { alert("Collection Modal: Select student and enter payment amount."); }
