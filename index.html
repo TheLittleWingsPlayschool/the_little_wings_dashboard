@@ -21,19 +21,19 @@
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
 
   <!-- Top Header & Live Role Switcher -->
-  <header class="bg-gradient-to-r from-sky-600 to-indigo-700 text-white px-6 py-4 shadow-md flex flex-wrap justify-between items-center sticky top-0 z-40">
+  <header class="bg-gradient-to-r from-sky-600 to-indigo-700 text-white px-6 py-3 shadow-md flex flex-wrap justify-between items-center sticky top-0 z-40">
     <div class="flex items-center space-x-3">
-      <div class="w-10 h-10 bg-white text-sky-600 rounded-full flex items-center justify-center font-extrabold text-2xl shadow-lg">
-        🪽
+      <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg border-2 border-white overflow-hidden p-0.5">
+        <img src="logo.jpeg" alt="The Little Wings Play School" class="w-full h-full object-contain rounded-full" />
       </div>
       <div>
-        <h1 class="text-xl font-bold tracking-tight">The Little Wings Play School</h1>
-        <p class="text-xs text-sky-100 font-medium">Preschool Management & Administration System ERP</p>
+        <h1 class="text-xl font-extrabold tracking-tight">The Little Wings Play School</h1>
+        <p class="text-xs text-sky-100 font-semibold tracking-wide">Learn • Play • Grow • Shine • Fly High</p>
       </div>
     </div>
 
     <!-- Active User & Role Selector Bar -->
-    <div class="flex items-center space-x-4 mt-3 sm:mt-0">
+    <div class="flex items-center space-x-4 mt-2 sm:mt-0">
       <div class="bg-sky-800/80 backdrop-blur border border-sky-400/30 px-3 py-1.5 rounded-xl flex items-center space-x-3 text-sm">
         <span class="text-sky-200 text-xs font-semibold uppercase tracking-wider">Logged in User:</span>
         <select id="userSelector" onchange="switchUser(this.value)" class="bg-white text-slate-900 font-bold px-3 py-1 rounded-lg text-sm outline-none cursor-pointer shadow-sm">
@@ -59,6 +59,14 @@
     <!-- Dynamic Sidebar Navigation -->
     <aside class="w-64 bg-white border-r border-slate-200 p-4 flex flex-col justify-between shadow-sm">
       <div>
+        <div class="flex items-center space-x-3 pb-4 mb-3 border-b border-slate-100">
+          <img src="logo.jpeg" alt="Logo" class="w-10 h-10 object-contain rounded-lg border border-slate-200 shadow-sm" />
+          <div>
+            <h3 class="font-extrabold text-xs text-slate-800 leading-tight">The Little Wings</h3>
+            <p class="text-[10px] text-sky-600 font-bold">Preschool ERP V1.0</p>
+          </div>
+        </div>
+
         <div class="px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider flex justify-between items-center">
           <span id="roleLabelDisplay">ADMIN NAVIGATION</span>
           <span id="roleBadge" class="bg-sky-100 text-sky-700 px-2 py-0.5 rounded text-[10px] font-extrabold">ADMIN</span>
@@ -71,7 +79,7 @@
       <div class="p-3 bg-sky-50 border border-sky-100 rounded-xl text-xs text-sky-800 space-y-1">
         <p class="font-bold flex items-center space-x-1"><span>🏫</span><span>Branch: Main Campus</span></p>
         <p class="text-slate-500">Academic Year: 2026-2027</p>
-        <p class="text-slate-400 text-[10px]">Production Mode — Clean Database</p>
+        <p class="text-slate-400 text-[10px]">Learn • Play • Grow • Shine</p>
       </div>
     </aside>
 
@@ -101,10 +109,6 @@
 
   <!-- JavaScript Data Store & Application Logic -->
   <script>
-    // =========================================================================
-    // SYSTEM ROLES & CLEAN PRODUCTION DATA ARRAYS (NO MOCK DEMO DATA)
-    // =========================================================================
-    
     const USERS = {
       admin1: { id: 'admin1', name: 'System Admin', role: 'admin', title: 'Principal & Main Admin', scope: 'All Modules' },
       hod1: { id: 'hod1', name: 'HOD Operations', role: 'hod', title: 'HOD - Pre-K & Operations', scope: ['Playgroup', 'Nursery'] },
@@ -126,10 +130,6 @@
     let STAFF = [];
     let ANNOUNCEMENTS = [];
     let LEAVES = [];
-
-    // =========================================================================
-    // NAVIGATION STRUCTURE BY ROLE (SECTION 13 SUGGESTED NAVIGATION)
-    // =========================================================================
 
     const NAV_ITEMS = {
       admin: [
@@ -160,10 +160,6 @@
         { id: 'announcements', label: 'Announcements', icon: 'bell' }
       ]
     };
-
-    // =========================================================================
-    // CORE APPLICATION FUNCTIONS
-    // =========================================================================
 
     function switchUser(userId) {
       currentUser = USERS[userId];
@@ -242,7 +238,7 @@
       } else if (activeTab === 'expenses') {
         title.innerText = 'School Expense Logger';
         subtitle.innerText = 'Track categories: Rent, Electricity, Toys, Food/Snacks, Stationery, Maintenance';
-        quickActions.innerHTML = `<button onclick="openAddExpenseModal()" class="bg-amber-600 text-white px-3 py-2 rounded-lg text-xs font-bold flex items-center space-x-1 shadow"><i data-lucide="plus" class="w-4 h-4"></i><span>Add Expense</span></button>`;
+        quickActions.innerHTML = `<button onclick="openAddExpenseModal()" class="bg-amber-600 text-white px-3 py-2 rounded-lg text-xs font-bold flex items-center space-x-1 shadow"><i data-lucide="wallet" class="w-4 h-4"></i><span>Add Expense</span></button>`;
         renderExpensesView(content);
       } else if (activeTab === 'reports') {
         title.innerText = 'Comprehensive System Reports';
@@ -263,10 +259,6 @@
       lucide.createIcons();
     }
 
-    // =========================================================================
-    // VIEW RENDERERS (DASHBOARD, STUDENTS, FEES, PAYROLL, EXPENSES, REPORTS)
-    // =========================================================================
-
     function renderDashboardView(container) {
       const totalFeesCollected = PAYMENTS.reduce((sum, p) => sum + p.paid, 0);
       const totalPendingFees = PAYMENTS.reduce((sum, p) => sum + p.balance, 0);
@@ -276,7 +268,6 @@
       const netBalance = totalFeesCollected - totalOutflow;
 
       container.innerHTML = `
-        <!-- KPI Cards Row -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-sky-500">
             <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Active Students</p>
@@ -316,7 +307,6 @@
           `}
         </div>
 
-        <!-- Financial Trend Chart & Alerts -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
             <h3 class="text-base font-bold text-slate-800 mb-4 flex items-center justify-between">
@@ -629,10 +619,6 @@
         </div>
       `;
     }
-
-    // =========================================================================
-    // INTERACTIVE ACTIONS & MODAL HANDLERS
-    // =========================================================================
 
     function toggleAttendance(studentId, newStatus) {
       ATTENDANCE[studentId] = newStatus;
