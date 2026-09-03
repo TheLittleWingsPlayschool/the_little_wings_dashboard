@@ -13,8 +13,9 @@
   <style>
     @media print {
       body * { visibility: hidden; }
-      #printable-receipt-modal, #printable-receipt-modal * { visibility: visible; }
-      #printable-receipt-modal { position: absolute; left: 0; top: 0; width: 100%; }
+      #printableReceiptView, #printableReceiptView * { visibility: visible; }
+      #printableReceiptView { position: absolute; left: 0; top: 0; width: 100%; }
+      .no-print { display: none !important; }
     }
   </style>
 </head>
@@ -235,7 +236,7 @@
       } else if (activeTab === 'fees') {
         title.innerText = 'Fees, Invoicing & Payments';
         subtitle.innerText = 'Collection history, overdue fee tracking, and instant printable fee receipt generation';
-        quickActions.innerHTML = `<button onclick="openCollectFeeModal()" class="bg-emerald-600 text-white px-3 py-2 rounded-lg text-xs font-bold flex items-center space-x-1 shadow"><i data-lucide="credit-card" class="w-4 h-4"></i><span>Collect Fee</span></button>`;
+        quickActions.innerHTML = ''; // Cleaned up redundant banner button
         renderFeesView(content);
       } else if (activeTab === 'attendance') {
         title.innerText = 'Student Attendance Register (Class & Section Wise)';
@@ -475,102 +476,304 @@
     }
 
     // =========================================================================
-    // CLASS & SECTION WISE ATTENDANCE REGISTER ENGINE
+    // FEES, INVOICING & PRINTABLE RECEIPT ENGINE
     // =========================================================================
 
-    function renderAttendanceView(container) {
-      const todayStr = new Date().toISOString().split('T')[0];
-      const classes = ['All', 'Playgroup', 'Nursery', 'LKG', 'UKG'];
-      const sections = ['All', 'A', 'B', 'C'];
-
-      let filteredStudents = STUDENTS;
-      if (selectedClassFilter !== 'All') {
-        filteredStudents = filteredStudents.filter(s => s.class === selectedClassFilter);
-      }
-      if (selectedSectionFilter !== 'All') {
-        filteredStudents = filteredStudents.filter(s => s.section === selectedSectionFilter);
-      }
-
-      // Group students by Class & Section
-      const groups = {};
-      filteredStudents.forEach(s => {
-        const key = `${s.class} - Section ${s.section}`;
-        if (!groups[key]) groups[key] = [];
-        groups[key].push(s);
-      });
-
+    function renderFeesView(container) {
       container.innerHTML = `
-        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
-          <!-- Class & Section Selector Header -->
-          <div class="flex flex-wrap justify-between items-center gap-4 border-b pb-4">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
             <div>
-              <h3 class="font-extrabold text-slate-900 text-base">Class Attendance Register — ${todayStr}</h3>
-              <p class="text-xs text-slate-500">Separated Class Level & Section Wise with real-time present counts</p>
+              <h3 class="font-extrabold text-slate-900 text-sm">Issued Fee Receipts & Collection Ledger</h3>
+              <p class="text-xs text-slate-500">Track fee collections, outstanding balances, and print official fee receipts</p>
             </div>
-
-            <div class="flex items-center space-x-3 text-xs">
-              <div class="flex items-center space-x-1.5 bg-slate-50 px-3 py-1.5 border rounded-xl">
-                <span class="font-bold text-slate-500">Filter Class:</span>
-                <select onchange="changeClassFilter(this.value)" class="bg-transparent font-bold text-slate-800 outline-none cursor-pointer">
-                  ${classes.map(c => `<option value="${c}" ${selectedClassFilter === c ? 'selected' : ''}>${c === 'All' ? 'All Classes' : c}</option>`).join('')}
-                </select>
-              </div>
-
-              <div class="flex items-center space-x-1.5 bg-slate-50 px-3 py-1.5 border rounded-xl">
-                <span class="font-bold text-slate-500">Filter Section:</span>
-                <select onchange="changeSectionFilter(this.value)" class="bg-transparent font-bold text-slate-800 outline-none cursor-pointer">
-                  ${sections.map(sec => `<option value="${sec}" ${selectedSectionFilter === sec ? 'selected' : ''}>${sec === 'All' ? 'All Sections' : 'Section ' + sec}</option>`).join('')}
-                </select>
-              </div>
-            </div>
+            <button onclick="openCollectFeeModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-lg text-xs font-bold shadow flex items-center space-x-1">
+              <i data-lucide="credit-card" class="w-4 h-4"></i>
+              <span>+ Generate Fee Receipt</span>
+            </button>
           </div>
 
-          <!-- Grouped Class & Section Attendance Cards -->
-          ${Object.keys(groups).length > 0 ? Object.keys(groups).map(groupKey => {
-            const groupStudents = groups[groupKey];
-            const presentCount = groupStudents.filter(s => (ATTENDANCE[s.id] || 'Present') === 'Present').length;
-            const absentCount = groupStudents.length - presentCount;
-
-            return `
-              <div class="border border-slate-200 rounded-2xl p-4 bg-slate-50/50 space-y-3 shadow-sm">
-                <div class="flex justify-between items-center border-b pb-2.5">
-                  <div class="flex items-center space-x-2">
-                    <span class="bg-sky-600 text-white p-1.5 rounded-lg shadow-sm"><i data-lucide="book-open" class="w-4 h-4"></i></span>
-                    <h4 class="font-extrabold text-slate-900 text-sm tracking-tight">${groupKey}</h4>
-                  </div>
-                  <div class="flex space-x-2 text-[11px] font-bold">
-                    <span class="bg-sky-100 text-sky-700 px-2.5 py-0.5 rounded-full">Total: ${groupStudents.length}</span>
-                    <span class="bg-emerald-100 text-emerald-700 px-2.5 py-0.5 rounded-full">Present: ${presentCount}</span>
-                    <span class="bg-red-100 text-red-700 px-2.5 py-0.5 rounded-full">Absent: ${absentCount}</span>
-                  </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  ${groupStudents.map(s => `
-                    <div class="p-3.5 bg-white rounded-xl border ${ATTENDANCE[s.id] === 'Absent' ? 'border-red-300 bg-red-50/30' : 'border-emerald-200'} flex justify-between items-center shadow-sm">
-                      <div>
-                        <p class="font-bold text-slate-900 text-xs">${s.name}</p>
-                        <p class="text-[10px] text-slate-400 font-mono mt-0.5">${s.student_id} • ${s.gender}</p>
-                      </div>
-                      <select onchange="toggleAttendance('${s.id}', this.value)" class="bg-white border text-xs font-extrabold px-2.5 py-1 rounded-lg outline-none cursor-pointer ${ATTENDANCE[s.id] === 'Absent' ? 'text-red-600 border-red-300' : 'text-emerald-700 border-emerald-300'}">
-                        <option value="Present" ${ATTENDANCE[s.id] !== 'Absent' ? 'selected' : ''}>Present</option>
-                        <option value="Absent" ${ATTENDANCE[s.id] === 'Absent' ? 'selected' : ''}>Absent</option>
-                      </select>
-                    </div>
-                  `).join('')}
-                </div>
-              </div>
-            `;
-          }).join('') : `
-            <div class="p-12 text-center text-slate-400">
-              <i data-lucide="calendar-check" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
-              <p class="font-bold text-slate-600">No Students Found for Selected Class & Section</p>
-              <p class="text-xs mt-1">Try selecting "All Classes" and "All Sections" from the filter dropdown above.</p>
-            </div>
-          `}
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-slate-600">
+              <thead class="bg-slate-100 text-slate-700 font-bold text-xs uppercase tracking-wider">
+                <tr>
+                  <th class="p-4">Receipt #</th>
+                  <th class="p-4">Student Name & Class</th>
+                  <th class="p-4">Fee Description</th>
+                  <th class="p-4">Payment Date</th>
+                  <th class="p-4">Paid Amount</th>
+                  <th class="p-4">Balance Due</th>
+                  <th class="p-4">Payment Mode</th>
+                  <th class="p-4 text-center">Receipt Action</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                ${PAYMENTS.length > 0 ? PAYMENTS.map(p => `
+                  <tr class="hover:bg-slate-50">
+                    <td class="p-4 font-mono font-bold text-sky-600">${p.receipt_no}</td>
+                    <td class="p-4"><p class="font-bold text-slate-900">${p.student_name}</p><p class="text-xs text-slate-400">${p.class}</p></td>
+                    <td class="p-4"><p class="text-xs font-semibold text-slate-800">${p.fee_type}</p><p class="text-xs text-slate-400">${p.month}</p></td>
+                    <td class="p-4 text-xs font-medium text-slate-600">${p.date}</td>
+                    <td class="p-4 font-bold text-emerald-600">₹${p.paid.toLocaleString()}</td>
+                    <td class="p-4 font-bold ${p.balance > 0 ? 'text-amber-600' : 'text-slate-400'}">₹${p.balance.toLocaleString()}</td>
+                    <td class="p-4 text-xs font-semibold"><span class="bg-slate-100 px-2 py-0.5 rounded text-slate-700 uppercase">${p.mode}</span></td>
+                    <td class="p-4 text-center">
+                      <button onclick="printReceiptModal('${p.id}')" class="bg-sky-50 text-sky-600 hover:bg-sky-100 px-3 py-1.5 rounded-lg text-xs font-bold border border-sky-200 flex items-center space-x-1 mx-auto">
+                        <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+                        <span>Print Receipt</span>
+                      </button>
+                    </td>
+                  </tr>
+                `).join('') : `
+                  <tr>
+                    <td colspan="8" class="p-12 text-center text-slate-400">
+                      <i data-lucide="credit-card" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
+                      <p class="font-bold text-slate-600 text-base">No Fee Receipts Issued Yet</p>
+                      <p class="text-xs mt-1">Click <strong>"+ Generate Fee Receipt"</strong> above to collect fees and generate an official printable receipt.</p>
+                    </td>
+                  </tr>
+                `}
+              </tbody>
+            </table>
+          </div>
         </div>
       `;
       lucide.createIcons();
+    }
+
+    function openCollectFeeModal() {
+      if (STUDENTS.length === 0) {
+        alert("No students enrolled yet! Please admit a student first before generating a fee receipt.");
+        return;
+      }
+
+      const modalOverlay = document.getElementById('modalOverlay');
+      const modalContainer = document.getElementById('modalContainer');
+      const today = new Date().toISOString().split('T')[0];
+
+      modalContainer.innerHTML = `
+        <h3 class="font-bold text-slate-900 text-lg border-b pb-2 flex items-center justify-between">
+          <span>Fee Collection & Invoice Entry</span>
+          <span class="text-xs text-slate-400">Main Campus Ledger</span>
+        </h3>
+        
+        <div class="space-y-3 text-xs">
+          <div>
+            <label class="font-bold text-slate-700">Select Student</label>
+            <select id="fee_student" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500 bg-white font-semibold text-slate-800">
+              ${STUDENTS.map(s => `<option value="${s.id}">${s.name} (${s.student_id}) — ${s.class} ${s.section}</option>`).join('')}
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="font-bold text-slate-700">Fee Category / Description</label>
+              <select id="fee_type" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500 bg-white font-semibold">
+                <option>Tuition Fee</option>
+                <option>Admission Fee</option>
+                <option>Annual Activity & Sports Fee</option>
+                <option>Transport / Bus Fee</option>
+                <option>Books & Uniform Fee</option>
+                <option>Late Fee / Miscellaneous</option>
+              </select>
+            </div>
+            <div>
+              <label class="font-bold text-slate-700">Term / Month</label>
+              <select id="fee_month" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500 bg-white font-semibold">
+                <option>April 2026</option>
+                <option>May 2026</option>
+                <option>June 2026</option>
+                <option>Term 1 (Apr - Aug)</option>
+                <option>Term 2 (Sep - Dec)</option>
+                <option>Term 3 (Jan - Mar)</option>
+                <option>Annual 2026-27</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="font-bold text-slate-700">Total Demanded Fee (₹)</label>
+              <input id="fee_total" type="number" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500 font-bold text-slate-900" value="5000" oninput="calculateBalance()">
+            </div>
+            <div>
+              <label class="font-bold text-slate-700">Amount Paid (₹)</label>
+              <input id="fee_paid" type="number" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500 font-extrabold text-emerald-700" value="5000" oninput="calculateBalance()">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="font-bold text-slate-700">Payment Mode</label>
+              <select id="fee_mode" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500 bg-white font-semibold">
+                <option>UPI / PhonePe / GPay</option>
+                <option>Cash</option>
+                <option>Net Banking / NEFT</option>
+                <option>Cheque</option>
+                <option>Card Payment</option>
+              </select>
+            </div>
+            <div>
+              <label class="font-bold text-slate-700">Payment Date</label>
+              <input id="fee_date" type="date" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500 font-semibold" value="${today}">
+            </div>
+          </div>
+
+          <div class="bg-amber-50 p-2.5 rounded-xl border border-amber-200 flex justify-between items-center text-xs">
+            <span class="font-semibold text-amber-900">Calculated Balance Due:</span>
+            <span id="fee_balance_display" class="font-extrabold text-amber-700 text-sm">₹0</span>
+          </div>
+        </div>
+
+        <div class="flex space-x-2 pt-3 border-t">
+          <button onclick="saveFeePayment()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-bold text-xs shadow">Issue Fee Receipt & Save</button>
+          <button onclick="closeModal()" class="px-4 bg-slate-100 text-slate-700 py-2.5 rounded-xl font-bold text-xs hover:bg-slate-200">Cancel</button>
+        </div>
+      `;
+      modalOverlay.classList.remove('hidden');
+      modalOverlay.classList.add('flex');
+    }
+
+    function calculateBalance() {
+      const total = parseFloat(document.getElementById('fee_total').value) || 0;
+      const paid = parseFloat(document.getElementById('fee_paid').value) || 0;
+      const balance = Math.max(0, total - paid);
+      document.getElementById('fee_balance_display').innerText = `₹${balance.toLocaleString()}`;
+    }
+
+    function saveFeePayment() {
+      const studentId = document.getElementById('fee_student').value;
+      const student = STUDENTS.find(s => s.id === studentId);
+      if (!student) return;
+
+      const feeType = document.getElementById('fee_type').value;
+      const month = document.getElementById('fee_month').value;
+      const total = parseFloat(document.getElementById('fee_total').value) || 0;
+      const paid = parseFloat(document.getElementById('fee_paid').value) || 0;
+      const balance = Math.max(0, total - paid);
+      const mode = document.getElementById('fee_mode').value;
+      const payDate = document.getElementById('fee_date').value || new Date().toISOString().split('T')[0];
+
+      const currentYear = new Date().getFullYear();
+      const receiptNo = `REC-${currentYear}-${String(PAYMENTS.length + 1).padStart(3, '0')}`;
+      const newPayId = 'p' + Date.now();
+
+      const newPayment = {
+        id: newPayId,
+        receipt_no: receiptNo,
+        student_id: student.student_id,
+        student_name: student.name,
+        class: `${student.class} - ${student.section}`,
+        father: student.father,
+        mobile: student.mobile,
+        fee_type: feeType,
+        month: month,
+        total: total,
+        paid: paid,
+        balance: balance,
+        mode: mode,
+        date: payDate
+      };
+
+      PAYMENTS.unshift(newPayment);
+      saveToLocalStorage();
+      closeModal();
+      renderCurrentView();
+
+      // Offer instant receipt printing
+      setTimeout(() => {
+        printReceiptModal(newPayId);
+      }, 200);
+    }
+
+    function printReceiptModal(paymentId) {
+      const p = PAYMENTS.find(pay => pay.id === paymentId);
+      if (!p) return;
+
+      const modalOverlay = document.getElementById('modalOverlay');
+      const modalContainer = document.getElementById('modalContainer');
+
+      modalContainer.innerHTML = `
+        <div id="printableReceiptView" class="space-y-4 text-xs text-slate-800 p-2">
+          <!-- Receipt Header with Logo -->
+          <div class="text-center pb-3 border-b-2 border-slate-800 space-y-1">
+            <img src="logo.jpeg" alt="The Little Wings Play School" class="w-16 h-16 object-contain mx-auto rounded-full border border-slate-200 p-0.5 shadow-sm">
+            <h2 class="text-lg font-black tracking-tight text-slate-900 uppercase">The Little Wings Play School</h2>
+            <p class="text-[10px] text-sky-700 font-bold uppercase tracking-wider">Learn • Play • Grow • Shine • Fly High</p>
+            <p class="text-[10px] text-slate-500">Main Campus Enclave • Phone: +91 ${p.mobile || '9876543210'}</p>
+            <div class="inline-block bg-slate-900 text-white font-extrabold px-3 py-0.5 rounded mt-1 uppercase text-[10px]">Official Fee Payment Receipt</div>
+          </div>
+
+          <!-- Receipt Information Bar -->
+          <div class="grid grid-cols-2 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
+            <div>
+              <p><strong>Receipt No:</strong> <span class="font-mono font-bold text-sky-600">${p.receipt_no}</span></p>
+              <p><strong>Student ID:</strong> <span class="font-mono font-bold">${p.student_id}</span></p>
+              <p><strong>Student Name:</strong> <span class="font-extrabold text-slate-900">${p.student_name}</span></p>
+              <p><strong>Class & Section:</strong> ${p.class}</p>
+            </div>
+            <div class="text-right">
+              <p><strong>Payment Date:</strong> ${p.date}</p>
+              <p><strong>Parent Name:</strong> ${p.father || 'Parent'}</p>
+              <p><strong>Contact Mobile:</strong> ${p.mobile}</p>
+              <p><strong>Payment Mode:</strong> <span class="font-bold text-emerald-700">${p.mode}</span></p>
+            </div>
+          </div>
+
+          <!-- Fee Item Breakdown Table -->
+          <table class="w-full text-left border-collapse border border-slate-300 text-xs">
+            <thead class="bg-slate-100 font-bold text-slate-700">
+              <tr>
+                <th class="border border-slate-300 p-2">Fee Description</th>
+                <th class="border border-slate-300 p-2">Term / Period</th>
+                <th class="border border-slate-300 p-2 text-right">Amount Paid</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="border border-slate-300 p-2 font-bold">${p.fee_type}</td>
+                <td class="border border-slate-300 p-2">${p.month}</td>
+                <td class="border border-slate-300 p-2 text-right font-extrabold text-slate-900">₹${p.paid.toLocaleString()}</td>
+              </tr>
+              <tr class="bg-slate-50 font-bold">
+                <td colspan="2" class="border border-slate-300 p-2 text-right">Total Amount Received:</td>
+                <td class="border border-slate-300 p-2 text-right text-emerald-700 font-black">₹${p.paid.toLocaleString()}</td>
+              </tr>
+              ${p.balance > 0 ? `
+                <tr class="bg-amber-50 text-amber-900 font-bold">
+                  <td colspan="2" class="border border-slate-300 p-2 text-right">Remaining Balance Due:</td>
+                  <td class="border border-slate-300 p-2 text-right text-amber-700">₹${p.balance.toLocaleString()}</td>
+                </tr>
+              ` : ''}
+            </tbody>
+          </table>
+
+          <!-- Signature & Stamp Section -->
+          <div class="flex justify-between items-end pt-6 text-[10px]">
+            <div>
+              <p class="text-slate-400">Receipt generated by system automatically.</p>
+              <p class="text-slate-500 font-semibold">Status: <span class="text-emerald-600 font-bold">● Payment Confirmed</span></p>
+            </div>
+            <div class="text-center">
+              <div class="w-32 border-b border-slate-400 mb-1"></div>
+              <p class="font-bold text-slate-800 uppercase">Authorized Signatory</p>
+              <p class="text-slate-400">The Little Wings Play School</p>
+            </div>
+          </div>
+
+          <!-- Buttons Bar (Hidden on Print) -->
+          <div class="flex space-x-2 pt-4 border-t no-print">
+            <button onclick="window.print()" class="flex-1 bg-sky-600 hover:bg-sky-700 text-white py-2 rounded-xl font-bold text-xs shadow flex items-center justify-center space-x-1">
+              <i data-lucide="printer" class="w-4 h-4"></i>
+              <span>🖨️ Print Receipt</span>
+            </button>
+            <button onclick="closeModal()" class="px-4 bg-slate-100 text-slate-700 py-2 rounded-xl font-bold text-xs hover:bg-slate-200">Close</button>
+          </div>
+        </div>
+      `;
+      lucide.createIcons();
+      modalOverlay.classList.remove('hidden');
+      modalOverlay.classList.add('flex');
     }
 
     function renderClassesView(container) {
@@ -694,52 +897,99 @@
       `;
     }
 
-    function renderFeesView(container) {
+    function renderAttendanceView(container) {
+      const todayStr = new Date().toISOString().split('T')[0];
+      const classes = ['All', 'Playgroup', 'Nursery', 'LKG', 'UKG'];
+      const sections = ['All', 'A', 'B', 'C'];
+
+      let filteredStudents = STUDENTS;
+      if (selectedClassFilter !== 'All') {
+        filteredStudents = filteredStudents.filter(s => s.class === selectedClassFilter);
+      }
+      if (selectedSectionFilter !== 'All') {
+        filteredStudents = filteredStudents.filter(s => s.section === selectedSectionFilter);
+      }
+
+      // Group students by Class & Section
+      const groups = {};
+      filteredStudents.forEach(s => {
+        const key = `${s.class} - Section ${s.section}`;
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(s);
+      });
+
       container.innerHTML = `
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-            <h3 class="font-bold text-slate-800 text-sm">Issued Fee Receipts & Collection Ledger</h3>
-            <button onclick="openCollectFeeModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow">+ Generate Fee Receipt</button>
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+          <!-- Class & Section Selector Header -->
+          <div class="flex flex-wrap justify-between items-center gap-4 border-b pb-4">
+            <div>
+              <h3 class="font-extrabold text-slate-900 text-base">Class Attendance Register — ${todayStr}</h3>
+              <p class="text-xs text-slate-500">Separated Class Level & Section Wise with real-time present counts</p>
+            </div>
+
+            <div class="flex items-center space-x-3 text-xs">
+              <div class="flex items-center space-x-1.5 bg-slate-50 px-3 py-1.5 border rounded-xl">
+                <span class="font-bold text-slate-500">Filter Class:</span>
+                <select onchange="changeClassFilter(this.value)" class="bg-transparent font-bold text-slate-800 outline-none cursor-pointer">
+                  ${classes.map(c => `<option value="${c}" ${selectedClassFilter === c ? 'selected' : ''}>${c === 'All' ? 'All Classes' : c}</option>`).join('')}
+                </select>
+              </div>
+
+              <div class="flex items-center space-x-1.5 bg-slate-50 px-3 py-1.5 border rounded-xl">
+                <span class="font-bold text-slate-500">Filter Section:</span>
+                <select onchange="changeSectionFilter(this.value)" class="bg-transparent font-bold text-slate-800 outline-none cursor-pointer">
+                  ${sections.map(sec => `<option value="${sec}" ${selectedSectionFilter === sec ? 'selected' : ''}>${sec === 'All' ? 'All Sections' : 'Section ' + sec}</option>`).join('')}
+                </select>
+              </div>
+            </div>
           </div>
 
-          <table class="w-full text-left text-sm text-slate-600">
-            <thead class="bg-slate-100 text-slate-700 font-bold text-xs uppercase tracking-wider">
-              <tr>
-                <th class="p-4">Receipt #</th>
-                <th class="p-4">Student & Class</th>
-                <th class="p-4">Fee Breakdown</th>
-                <th class="p-4">Paid Amount</th>
-                <th class="p-4">Balance Due</th>
-                <th class="p-4">Payment Mode</th>
-                <th class="p-4">Action</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100">
-              ${PAYMENTS.length > 0 ? PAYMENTS.map(p => `
-                <tr class="hover:bg-slate-50">
-                  <td class="p-4 font-mono font-bold text-sky-600">${p.receipt_no}</td>
-                  <td class="p-4"><p class="font-bold text-slate-900">${p.student_name}</p><p class="text-xs text-slate-400">${p.class}</p></td>
-                  <td class="p-4"><p class="text-xs font-semibold text-slate-800">${p.fee_type}</p><p class="text-xs text-slate-400">${p.month}</p></td>
-                  <td class="p-4 font-bold text-emerald-600">₹${p.paid.toLocaleString()}</td>
-                  <td class="p-4 font-bold ${p.balance > 0 ? 'text-amber-600' : 'text-slate-400'}">₹${p.balance.toLocaleString()}</td>
-                  <td class="p-4 text-xs font-medium">${p.mode}</td>
-                  <td class="p-4">
-                    <button onclick="printReceipt('${p.id}')" class="bg-sky-50 text-sky-600 hover:bg-sky-100 px-2.5 py-1 rounded-lg text-xs font-bold">Print</button>
-                  </td>
-                </tr>
-              `).join('') : `
-                <tr>
-                  <td colspan="7" class="p-12 text-center text-slate-400">
-                    <i data-lucide="credit-card" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
-                    <p class="font-bold text-slate-600 text-base">No Fee Receipts Generated Yet</p>
-                    <p class="text-xs mt-1">Click <strong>"+ Generate Fee Receipt"</strong> to issue an official fee receipt.</p>
-                  </td>
-                </tr>
-              `}
-            </tbody>
-          </table>
+          <!-- Grouped Class & Section Attendance Cards -->
+          ${Object.keys(groups).length > 0 ? Object.keys(groups).map(groupKey => {
+            const groupStudents = groups[groupKey];
+            const presentCount = groupStudents.filter(s => (ATTENDANCE[s.id] || 'Present') === 'Present').length;
+            const absentCount = groupStudents.length - presentCount;
+
+            return `
+              <div class="border border-slate-200 rounded-2xl p-4 bg-slate-50/50 space-y-3 shadow-sm">
+                <div class="flex justify-between items-center border-b pb-2.5">
+                  <div class="flex items-center space-x-2">
+                    <span class="bg-sky-600 text-white p-1.5 rounded-lg shadow-sm"><i data-lucide="book-open" class="w-4 h-4"></i></span>
+                    <h4 class="font-extrabold text-slate-900 text-sm tracking-tight">${groupKey}</h4>
+                  </div>
+                  <div class="flex space-x-2 text-[11px] font-bold">
+                    <span class="bg-sky-100 text-sky-700 px-2.5 py-0.5 rounded-full">Total: ${groupStudents.length}</span>
+                    <span class="bg-emerald-100 text-emerald-700 px-2.5 py-0.5 rounded-full">Present: ${presentCount}</span>
+                    <span class="bg-red-100 text-red-700 px-2.5 py-0.5 rounded-full">Absent: ${absentCount}</span>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  ${groupStudents.map(s => `
+                    <div class="p-3.5 bg-white rounded-xl border ${ATTENDANCE[s.id] === 'Absent' ? 'border-red-300 bg-red-50/30' : 'border-emerald-200'} flex justify-between items-center shadow-sm">
+                      <div>
+                        <p class="font-bold text-slate-900 text-xs">${s.name}</p>
+                        <p class="text-[10px] text-slate-400 font-mono mt-0.5">${s.student_id} • ${s.gender}</p>
+                      </div>
+                      <select onchange="toggleAttendance('${s.id}', this.value)" class="bg-white border text-xs font-extrabold px-2.5 py-1 rounded-lg outline-none cursor-pointer ${ATTENDANCE[s.id] === 'Absent' ? 'text-red-600 border-red-300' : 'text-emerald-700 border-emerald-300'}">
+                        <option value="Present" ${ATTENDANCE[s.id] !== 'Absent' ? 'selected' : ''}>Present</option>
+                        <option value="Absent" ${ATTENDANCE[s.id] === 'Absent' ? 'selected' : ''}>Absent</option>
+                      </select>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            `;
+          }).join('') : `
+            <div class="p-12 text-center text-slate-400">
+              <i data-lucide="calendar-check" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
+              <p class="font-bold text-slate-600">No Students Found for Selected Class & Section</p>
+              <p class="text-xs mt-1">Try selecting "All Classes" and "All Sections" from the filter dropdown above.</p>
+            </div>
+          `}
         </div>
       `;
+      lucide.createIcons();
     }
 
     function renderPayrollView(container) {
@@ -791,7 +1041,7 @@
     function renderExpensesView(container) {
       container.innerHTML = `
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+          <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
             <h3 class="font-bold text-slate-800 text-sm">Expenditure Ledger (Categorized)</h3>
             ${currentUser.role === 'admin' ? `<button onclick="openAddExpenseModal()" class="bg-amber-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow">+ Add Expense</button>` : ''}
           </div>
@@ -1212,7 +1462,6 @@
       setActiveTab('expenses');
     }
 
-    function openCollectFeeModal() { alert("Collection Modal: Select student and enter payment amount."); }
     function closeModal() {
       const modalOverlay = document.getElementById('modalOverlay');
       modalOverlay.classList.remove('flex');
