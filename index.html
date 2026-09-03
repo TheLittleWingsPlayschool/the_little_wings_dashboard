@@ -15,10 +15,27 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
+    @page {
+      margin: 0mm;
+      size: auto;
+    }
     @media print {
+      html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+      }
       body * { visibility: hidden; }
       #printableReceiptView, #printableReceiptView * { visibility: visible; }
-      #printableReceiptView { position: absolute; left: 0; top: 0; width: 100%; }
+      #printableReceiptView {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        padding: 35px !important;
+        box-sizing: border-box;
+        background: #ffffff !important;
+      }
       .no-print { display: none !important; }
     }
   </style>
@@ -73,7 +90,7 @@
           <img src="logo.jpeg" alt="Logo" class="w-10 h-10 object-contain rounded-lg border border-slate-200 shadow-sm" />
           <div>
             <h3 class="font-extrabold text-xs text-slate-800 leading-tight">The Little Wings</h3>
-            <p class="text-[10px] text-sky-600 font-bold">Preschool ERP V1.1.2 (Top-Left Logo)</p>
+            <p class="text-[10px] text-sky-600 font-bold">Preschool ERP V1.1.3 (Clean Print Header/Footer)</p>
           </div>
         </div>
 
@@ -869,18 +886,18 @@
 
       modalContainer.innerHTML = `
         <div id="printableReceiptView" class="space-y-4 text-xs text-slate-800 p-2">
-          <!-- Top Left Logo Header matching Side Text Height -->
-          <div class="pb-3 border-b-2 border-slate-800 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-              <img src="logo.jpeg" alt="The Little Wings Play School" class="w-14 h-14 object-contain rounded-full border border-slate-200 p-0.5 shadow-sm shrink-0">
+          <!-- Prominent Top-Left Large Logo Header matching Side Text Height -->
+          <div class="pb-4 border-b-2 border-slate-900 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+              <img src="logo.jpeg" alt="The Little Wings Play School" class="w-20 h-20 object-contain rounded-full border-2 border-slate-200 p-1 shadow-sm shrink-0">
               <div class="flex flex-col justify-center">
-                <h2 class="text-base font-black tracking-tight text-slate-900 uppercase leading-tight">The Little Wings Play School</h2>
-                <p class="text-[10px] text-sky-700 font-bold uppercase tracking-wider leading-tight">Learn • Play • Grow • Shine • Fly High</p>
-                <p class="text-[10px] text-slate-500 leading-tight">Main Campus Enclave • Phone: +91 ${p.mobile || '9876543210'}</p>
+                <h2 class="text-xl font-black tracking-tight text-slate-900 uppercase leading-tight">The Little Wings Play School</h2>
+                <p class="text-xs text-sky-700 font-bold uppercase tracking-wider leading-tight mt-0.5">Learn • Play • Grow • Shine • Fly High</p>
+                <p class="text-xs text-slate-500 leading-tight mt-1">Main Campus Enclave • Phone: +91 ${p.mobile || '9876543210'}</p>
               </div>
             </div>
             <div class="text-right shrink-0">
-              <div class="bg-slate-900 text-white font-extrabold px-3 py-1.5 rounded uppercase text-[10px] tracking-wider shadow-sm">
+              <div class="bg-slate-900 text-white font-extrabold px-3.5 py-1.5 rounded-lg uppercase text-xs tracking-wider shadow-sm">
                 Official Fee Payment Receipt
               </div>
             </div>
