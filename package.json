@@ -1,0 +1,24 @@
+{
+  "name": "the_little_wings_dashboard",
+  "version": "1.0.0",
+  "description": "Preschool Management & Administration System ERP for The Little Wings Play School",
+  "main": "index.html",
+  "type": "module",
+  "scripts": {
+    "start": "node server/index.js"
+  },
+  "keywords": [
+    "preschool",
+    "erp",
+    "school-management",
+    "dashboard",
+    "rbac"
+  ],
+  "author": "The Little Wings Play School",
+  "license": "MIT",
+  "dependencies": {
+    "better-sqlite3": "^11.3.0",
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  }
+}
