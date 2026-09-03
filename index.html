@@ -364,10 +364,10 @@
                 <tr>
                   <th class="p-4">Student ID</th>
                   <th class="p-4">Student Name</th>
+                  <th class="p-4">Gender</th>
                   <th class="p-4">Class & Sec</th>
                   <th class="p-4">Parent Details</th>
                   <th class="p-4">Emergency Contact</th>
-                  <th class="p-4">Medical / Pickup Notes</th>
                   <th class="p-4">Status</th>
                 </tr>
               </thead>
@@ -375,11 +375,11 @@
                 ${STUDENTS.length > 0 ? STUDENTS.map(s => `
                   <tr class="hover:bg-slate-50">
                     <td class="p-4 font-mono font-bold text-sky-600">${s.student_id}</td>
-                    <td class="p-4"><p class="font-bold text-slate-900">${s.name}</p><p class="text-xs text-slate-400">DOB: ${s.dob} (${s.gender})</p></td>
+                    <td class="p-4"><p class="font-bold text-slate-900">${s.name}</p><p class="text-xs text-slate-400">DOB: ${s.dob}</p></td>
+                    <td class="p-4"><span class="px-2 py-0.5 rounded text-xs font-bold ${s.gender === 'Boy' ? 'bg-sky-100 text-sky-700' : 'bg-pink-100 text-pink-700'}">${s.gender}</span></td>
                     <td class="p-4 font-semibold text-slate-700">${s.class} - ${s.section}</td>
                     <td class="p-4"><p class="text-xs font-semibold text-slate-800">F: ${s.father}</p><p class="text-xs text-slate-500">M: ${s.mother} (${s.mobile})</p></td>
                     <td class="p-4 font-mono text-xs text-red-600 font-bold">${s.emergency}</td>
-                    <td class="p-4 text-xs text-slate-500"><p><span class="font-bold text-amber-700">Health:</span> ${s.medical}</p><p><span class="font-bold text-sky-700">Pickup:</span> ${s.pickup}</p></td>
                     <td class="p-4"><span class="bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full text-xs font-extrabold">Active</span></td>
                   </tr>
                 `).join('') : `
@@ -460,7 +460,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               ${STUDENTS.map(s => `
                 <div class="p-4 rounded-xl border ${ATTENDANCE[s.id] === 'Present' ? 'bg-emerald-50/50 border-emerald-200' : 'bg-red-50/50 border-red-200'} flex justify-between items-center">
-                  <div><p class="font-bold text-slate-900 text-sm">${s.name}</p><p class="text-xs text-slate-500">${s.class} - ${s.section}</p></div>
+                  <div><p class="font-bold text-slate-900 text-sm">${s.name}</p><p class="text-xs text-slate-500">${s.class} - ${s.section} (${s.gender})</p></div>
                   <select onchange="toggleAttendance('${s.id}', this.value)" class="bg-white border rounded px-2 py-1 text-xs font-bold outline-none">
                     <option value="Present">Present</option>
                     <option value="Absent">Absent</option>
@@ -621,7 +621,7 @@
     }
 
     // =========================================================================
-    // INTERACTIVE ACTIONS & DYNAMIC STUDENT ID GENERATOR (LW-2026-001)
+    // NEW STUDENT ADMISSION MODAL (WITH GENDER FIELD)
     // =========================================================================
 
     function toggleAttendance(studentId, newStatus) {
@@ -639,19 +639,60 @@
       modalContainer.innerHTML = `
         <h3 class="font-bold text-slate-900 text-lg border-b pb-2">New Student Admission Form</h3>
         <div class="space-y-3 text-xs">
-          <div><label class="font-bold">Student Full Name</label><input id="new_name" type="text" class="w-full p-2 border rounded-lg mt-1" placeholder="e.g. Advait Nair"></div>
-          <div class="grid grid-cols-2 gap-2">
-            <div><label class="font-bold">Class Level</label><select id="new_class" class="w-full p-2 border rounded-lg mt-1"><option>Playgroup</option><option>Nursery</option><option>LKG</option><option>UKG</option></select></div>
-            <div><label class="font-bold">Section</label><input id="new_sec" type="text" class="w-full p-2 border rounded-lg mt-1" value="A"></div>
+          <div>
+            <label class="font-bold text-slate-700">Student Full Name</label>
+            <input id="new_name" type="text" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500" placeholder="e.g. Advait Nair">
           </div>
+          
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="font-bold text-slate-700">Gender</label>
+              <select id="new_gender" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500 bg-white font-semibold">
+                <option value="Boy">👦 Boy</option>
+                <option value="Girl">👧 Girl</option>
+              </select>
+            </div>
+            <div>
+              <label class="font-bold text-slate-700">Class Level</label>
+              <select id="new_class" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500 bg-white font-semibold">
+                <option>Playgroup</option>
+                <option>Nursery</option>
+                <option>LKG</option>
+                <option>UKG</option>
+              </select>
+            </div>
+            <div>
+              <label class="font-bold text-slate-700">Section</label>
+              <input id="new_sec" type="text" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500 font-semibold" value="A">
+            </div>
+          </div>
+
           <div class="grid grid-cols-2 gap-2">
-            <div><label class="font-bold">Father Name</label><input id="new_father" type="text" class="w-full p-2 border rounded-lg mt-1"></div>
-            <div><label class="font-bold">Mobile</label><input id="new_mobile" type="text" class="w-full p-2 border rounded-lg mt-1"></div>
+            <div>
+              <label class="font-bold text-slate-700">Date of Birth</label>
+              <input id="new_dob" type="date" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500" value="2021-04-12">
+            </div>
+            <div>
+              <label class="font-bold text-slate-700">Mobile Number</label>
+              <input id="new_mobile" type="text" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500" placeholder="e.g. 9876543210">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="font-bold text-slate-700">Father Name</label>
+              <input id="new_father" type="text" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500" placeholder="Father Name">
+            </div>
+            <div>
+              <label class="font-bold text-slate-700">Mother Name</label>
+              <input id="new_mother" type="text" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500" placeholder="Mother Name">
+            </div>
           </div>
         </div>
+
         <div class="flex space-x-2 pt-3 border-t">
-          <button onclick="saveNewStudent()" class="flex-1 bg-sky-600 text-white py-2 rounded-xl font-bold text-xs">Admit Student</button>
-          <button onclick="closeModal()" class="px-4 bg-slate-100 text-slate-700 py-2 rounded-xl font-bold text-xs">Cancel</button>
+          <button onclick="saveNewStudent()" class="flex-1 bg-sky-600 hover:bg-sky-700 text-white py-2.5 rounded-xl font-bold text-xs shadow">Admit Student</button>
+          <button onclick="closeModal()" class="px-4 bg-slate-100 text-slate-700 py-2.5 rounded-xl font-bold text-xs hover:bg-slate-200">Cancel</button>
         </div>
       `;
       modalOverlay.classList.remove('hidden');
@@ -660,20 +701,22 @@
 
     function saveNewStudent() {
       const name = document.getElementById('new_name').value || 'New Student';
+      const gender = document.getElementById('new_gender').value || 'Boy';
       const className = document.getElementById('new_class').value;
       const section = document.getElementById('new_sec').value;
-      const father = document.getElementById('new_father').value || 'Parent';
-      const mobile = document.getElementById('new_mobile').value || '9900000000';
+      const dob = document.getElementById('new_dob').value || '2021-04-12';
+      const father = document.getElementById('new_father').value || 'Father';
+      const mother = document.getElementById('new_mother').value || 'Mother';
+      const mobile = document.getElementById('new_mobile').value || '9876543210';
 
-      // DYNAMIC STUDENT ID GENERATION (Format: LW-2026-001)
       const currentYear = new Date().getFullYear(); // 2026
-      const seqNum = String(STUDENTS.length + 1).padStart(3, '0'); // 001, 002, 003...
+      const seqNum = String(STUDENTS.length + 1).padStart(3, '0'); // 001, 002...
       const student_id = `LW-${currentYear}-${seqNum}`;
       const newId = 's' + (STUDENTS.length + 1);
 
       STUDENTS.push({
-        id: newId, student_id, name, class: className, section, dob: '2021-01-01', gender: 'Boy', status: 'Active',
-        father, mother: 'Mother', mobile, emergency: mobile, address: 'Campus Enclave', medical: 'None', pickup: 'Parents'
+        id: newId, student_id, name, class: className, section, dob, gender, status: 'Active',
+        father, mother, mobile, emergency: mobile, address: 'Campus Enclave', medical: 'None', pickup: 'Parents'
       });
 
       ATTENDANCE[newId] = 'Present';
