@@ -38,17 +38,17 @@
         <span class="text-sky-200 text-xs font-semibold uppercase tracking-wider">Logged in User:</span>
         <select id="userSelector" onchange="switchUser(this.value)" class="bg-white text-slate-900 font-bold px-3 py-1 rounded-lg text-sm outline-none cursor-pointer shadow-sm">
           <optgroup label="System Administrator">
-            <option value="admin1">👑 Rajesh Sharma (Admin / Principal)</option>
+            <option value="admin1">👑 Admin User (Principal / Owner)</option>
           </optgroup>
           <optgroup label="Heads of Department (HOD)">
-            <option value="hod1">🎓 Priya Verma (HOD - Pre-K & Operations)</option>
-            <option value="hod2">🎓 Sunita Rao (HOD - Kindergarten)</option>
+            <option value="hod1">🎓 HOD - Pre-K & Operations</option>
+            <option value="hod2">🎓 HOD - Kindergarten & Academics</option>
           </optgroup>
           <optgroup label="Classroom Teachers">
-            <option value="teacher1">👩‍🏫 Sarah Johnson (Lead Teacher - Nursery A)</option>
-            <option value="teacher2">👩‍🏫 Ananya Sen (Lead Teacher - LKG B)</option>
-            <option value="teacher3">👩‍🏫 Kavita Patel (Lead Teacher - UKG A)</option>
-            <option value="teacher4">👩‍🏫 Meera Nair (Lead Teacher - Playgroup A)</option>
+            <option value="teacher1">👩‍🏫 Nursery Class Teacher</option>
+            <option value="teacher2">👩‍🏫 LKG Class Teacher</option>
+            <option value="teacher3">👩‍🏫 UKG Class Teacher</option>
+            <option value="teacher4">👩‍🏫 Playgroup Class Teacher</option>
           </optgroup>
         </select>
       </div>
@@ -71,7 +71,7 @@
       <div class="p-3 bg-sky-50 border border-sky-100 rounded-xl text-xs text-sky-800 space-y-1">
         <p class="font-bold flex items-center space-x-1"><span>🏫</span><span>Branch: Main Campus</span></p>
         <p class="text-slate-500">Academic Year: 2026-2027</p>
-        <p class="text-slate-400 text-[10px]">Specification V1.0 Compliant</p>
+        <p class="text-slate-400 text-[10px]">Production Mode — Clean Database</p>
       </div>
     </aside>
 
@@ -102,70 +102,30 @@
   <!-- JavaScript Data Store & Application Logic -->
   <script>
     // =========================================================================
-    // HARD-CODED MASTER DATA (USERS, STUDENTS, CLASSES, FEES, EXPENSES, PAYROLL)
+    // SYSTEM ROLES & CLEAN PRODUCTION DATA ARRAYS (NO MOCK DEMO DATA)
     // =========================================================================
     
     const USERS = {
-      admin1: { id: 'admin1', name: 'Mr. Rajesh Sharma', role: 'admin', title: 'Principal & Main Admin', scope: 'All Modules' },
-      hod1: { id: 'hod1', name: 'Mrs. Priya Verma', role: 'hod', title: 'HOD - Pre-K & Operations', scope: ['Playgroup', 'Nursery'] },
-      hod2: { id: 'hod2', name: 'Mrs. Sunita Rao', role: 'hod', title: 'HOD - Kindergarten & Curriculum', scope: ['LKG', 'UKG'] },
-      teacher1: { id: 'teacher1', name: 'Ms. Sarah Johnson', role: 'teacher', title: 'Lead Teacher', scope: 'Nursery-A' },
-      teacher2: { id: 'teacher2', name: 'Ms. Ananya Sen', role: 'teacher', title: 'Lead Teacher', scope: 'LKG-B' },
-      teacher3: { id: 'teacher3', name: 'Ms. Kavita Patel', role: 'teacher', title: 'Lead Teacher', scope: 'UKG-A' },
-      teacher4: { id: 'teacher4', name: 'Ms. Meera Nair', role: 'teacher', title: 'Lead Teacher', scope: 'Playgroup-A' }
+      admin1: { id: 'admin1', name: 'System Admin', role: 'admin', title: 'Principal & Main Admin', scope: 'All Modules' },
+      hod1: { id: 'hod1', name: 'HOD Operations', role: 'hod', title: 'HOD - Pre-K & Operations', scope: ['Playgroup', 'Nursery'] },
+      hod2: { id: 'hod2', name: 'HOD Academics', role: 'hod', title: 'HOD - Kindergarten & Curriculum', scope: ['LKG', 'UKG'] },
+      teacher1: { id: 'teacher1', name: 'Nursery Lead Teacher', role: 'teacher', title: 'Lead Teacher', scope: 'Nursery-A' },
+      teacher2: { id: 'teacher2', name: 'LKG Lead Teacher', role: 'teacher', title: 'Lead Teacher', scope: 'LKG-B' },
+      teacher3: { id: 'teacher3', name: 'UKG Lead Teacher', role: 'teacher', title: 'Lead Teacher', scope: 'UKG-A' },
+      teacher4: { id: 'teacher4', name: 'Playgroup Lead Teacher', role: 'teacher', title: 'Lead Teacher', scope: 'Playgroup-A' }
     };
 
     let currentUser = USERS.admin1;
     let activeTab = 'dashboard';
 
-    let STUDENTS = [
-      { id: 's1', student_id: 'LW-2024-001', name: 'Aarav Sharma', class: 'Nursery', section: 'A', dob: '2021-04-12', gender: 'Boy', status: 'Active', father: 'Rajesh Sharma', mother: 'Pooja Sharma', mobile: '9876543210', emergency: '9876543299', address: 'B-104 Sunshine Heights, Sector 15', medical: 'Mild Peanut Allergy', pickup: 'Mother / Father with ID card' },
-      { id: 's2', student_id: 'LW-2024-002', name: 'Ananya Patel', class: 'Nursery', section: 'A', dob: '2021-06-20', gender: 'Girl', status: 'Active', father: 'Vikram Patel', mother: 'Neha Patel', mobile: '9876543211', emergency: '9876543298', address: 'A-402 Rose Apartments', medical: 'None', pickup: 'Grandfather (Mr. K. Patel)' },
-      { id: 's3', student_id: 'LW-2024-003', name: 'Vivaan Gupta', class: 'LKG', section: 'B', dob: '2020-09-15', gender: 'Boy', status: 'Active', father: 'Amit Gupta', mother: 'Ritu Gupta', mobile: '9876543212', emergency: '9876543297', address: 'C-12 Park View Enclave', medical: 'Asthma inhaler in kit', pickup: 'Father' },
-      { id: 's4', student_id: 'LW-2024-004', name: 'Diya Singh', class: 'UKG', section: 'A', dob: '2019-11-05', gender: 'Girl', status: 'Active', father: 'Rohan Singh', mother: 'Simran Singh', mobile: '9876543213', emergency: '9876543296', address: 'H-88 Green Meadows', medical: 'Lactose Intolerant', pickup: 'School Bus Driver (Route 3)' },
-      { id: 's5', student_id: 'LW-2024-005', name: 'Reyansh Kumar', class: 'Playgroup', section: 'A', dob: '2022-02-14', gender: 'Boy', status: 'Active', father: 'Sanjay Kumar', mother: 'Sunita Kumar', mobile: '9876543214', emergency: '9876543295', address: 'Flat 301 Lotus Towers', medical: 'None', pickup: 'Mother' },
-      { id: 's6', student_id: 'LW-2024-006', name: 'Myra Joshi', class: 'Nursery', section: 'A', dob: '2021-08-30', gender: 'Girl', status: 'Active', father: 'Nitin Joshi', mother: 'Priya Joshi', mobile: '9876543215', emergency: '9876543294', address: 'D-55 Vasant Vihar', medical: 'Dust allergy', pickup: 'Nanny (Seema)' }
-    ];
-
-    let ATTENDANCE = {
-      's1': 'Present',
-      's2': 'Present',
-      's3': 'Absent',
-      's4': 'Present',
-      's5': 'Present',
-      's6': 'Present'
-    };
-
-    let PAYMENTS = [
-      { id: 'p1', receipt_no: 'REC-2026-001', student_id: 's1', student_name: 'Aarav Sharma', class: 'Nursery-A', fee_type: 'Monthly Tuition + Transport', month: 'August 2026', due: 15000, discount: 0, paid: 15000, balance: 0, date: '2026-08-05', mode: 'UPI', ref: 'UPI/9988112233', collector: 'Admin' },
-      { id: 'p2', receipt_no: 'REC-2026-002', student_id: 's2', student_name: 'Ananya Patel', class: 'Nursery-A', fee_type: 'Monthly Tuition', month: 'August 2026', due: 12000, discount: 1000, paid: 8000, balance: 3000, date: '2026-08-10', mode: 'Cash', ref: 'CSH-4412', collector: 'Admin' },
-      { id: 'p3', receipt_no: 'REC-2026-003', student_id: 's3', student_name: 'Vivaan Gupta', class: 'LKG-B', fee_type: 'Admission + Material Fee', month: 'Annual 2026', due: 25000, discount: 2000, paid: 23000, balance: 0, date: '2026-08-12', mode: 'Bank Transfer', ref: 'NEFT/HDFC/44122', collector: 'Admin' }
-    ];
-
-    let EXPENSES = [
-      { id: 'e1', date: '2026-08-01', category: 'Rent', description: 'School Premises Building Rent (August)', amount: 45000, mode: 'Bank Transfer', paid_by: 'Admin', receipt: 'VOUCH-101' },
-      { id: 'e2', date: '2026-08-03', category: 'Toys & Teaching Materials', description: 'Montessori Wooden Sensory Toys', amount: 8500, mode: 'UPI', paid_by: 'Priya Verma (HOD)', receipt: 'VOUCH-102' },
-      { id: 'e3', date: '2026-08-15', category: 'Electricity', description: 'Monthly Electricity & Air Conditioning Bill', amount: 6400, mode: 'UPI', paid_by: 'Admin', receipt: 'VOUCH-103' },
-      { id: 'e4', date: '2026-08-18', category: 'Food & Snacks', description: 'Organic Fruits & Snacks for Playgroup/Nursery', amount: 4200, mode: 'Cash', paid_by: 'Sarah Johnson', receipt: 'VOUCH-104' },
-      { id: 'e5', date: '2026-08-22', category: 'Stationery', description: 'Crayons, Drawing Sheets & Craft Paper Supplies', amount: 3100, mode: 'Cash', paid_by: 'Admin', receipt: 'VOUCH-105' }
-    ];
-
-    let STAFF = [
-      { id: 'st1', emp_id: 'EMP-001', name: 'Ms. Sarah Johnson', role: 'Teacher', class_assigned: 'Nursery A', mobile: '9811122233', basic: 28000, allowances: 2000, overtime: 1000, advances: 0, deductions: 500, net: 30500, status: 'Paid' },
-      { id: 'st2', emp_id: 'EMP-002', name: 'Mrs. Priya Verma', role: 'HOD', class_assigned: 'Pre-K Dept', mobile: '9822233344', basic: 42000, allowances: 3000, overtime: 0, advances: 2000, deductions: 1000, net: 42000, status: 'Paid' },
-      { id: 'st3', emp_id: 'EMP-003', name: 'Mrs. Sunita Rao', role: 'HOD', class_assigned: 'Kindergarten', mobile: '9833344455', basic: 42000, allowances: 3000, overtime: 0, advances: 0, deductions: 1000, net: 44000, status: 'Paid' },
-      { id: 'st4', emp_id: 'EMP-004', name: 'Ms. Ananya Sen', role: 'Teacher', class_assigned: 'LKG B', mobile: '9844455566', basic: 27000, allowances: 2000, overtime: 0, advances: 0, deductions: 500, net: 28500, status: 'Pending' },
-      { id: 'st5', emp_id: 'EMP-005', name: 'Mr. Ramesh Kumar', role: 'Support', class_assigned: 'Maintenance', mobile: '9855566677', basic: 15000, allowances: 1000, overtime: 1500, advances: 1000, deductions: 300, net: 16200, status: 'Pending' }
-    ];
-
-    let ANNOUNCEMENTS = [
-      { id: 1, date: '2026-08-28', title: 'Grandparents Day Celebration Next Friday', content: 'All teachers please prepare classroom performances for Nursery and LKG students.', target: 'All Staff' },
-      { id: 2, date: '2026-08-25', title: 'Teacher Training Workshop on Early Child Psychology', content: 'Mandatory session for all teachers and HODs this Saturday 10:00 AM.', target: 'Teachers & HODs' }
-    ];
-
-    let LEAVES = [
-      { id: 1, staff_name: 'Ms. Ananya Sen', role: 'Teacher (LKG B)', type: 'Casual Leave', dates: 'Sep 5, 2026 (1 Day)', reason: 'Family Function', status: 'Pending' }
-    ];
+    // CLEAN DATA STORES
+    let STUDENTS = [];
+    let ATTENDANCE = {};
+    let PAYMENTS = [];
+    let EXPENSES = [];
+    let STAFF = [];
+    let ANNOUNCEMENTS = [];
+    let LEAVES = [];
 
     // =========================================================================
     // NAVIGATION STRUCTURE BY ROLE (SECTION 13 SUGGESTED NAVIGATION)
@@ -245,7 +205,6 @@
       const quickActions = document.getElementById('quickActions');
       const content = document.getElementById('tabContent');
 
-      // Update banner header based on tab and role
       if (activeTab === 'dashboard') {
         title.innerText = currentUser.role === 'admin' ? 'Admin Executive Dashboard' :
                           currentUser.role === 'hod' ? `Academic Dashboard (${currentUser.name})` :
@@ -309,7 +268,6 @@
     // =========================================================================
 
     function renderDashboardView(container) {
-      // Calculate financial totals
       const totalFeesCollected = PAYMENTS.reduce((sum, p) => sum + p.paid, 0);
       const totalPendingFees = PAYMENTS.reduce((sum, p) => sum + p.balance, 0);
       const totalExpenses = EXPENSES.reduce((sum, e) => sum + e.amount, 0);
@@ -323,18 +281,18 @@
           <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-sky-500">
             <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Active Students</p>
             <h3 class="text-3xl font-extrabold text-slate-800 mt-1">${STUDENTS.length}</h3>
-            <p class="text-xs text-sky-600 font-semibold mt-1">4 New Admissions this month</p>
+            <p class="text-xs text-sky-600 font-semibold mt-1">${STUDENTS.length} Enrolled</p>
           </div>
 
           <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-emerald-500">
             <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Today's Student Attendance</p>
-            <h3 class="text-3xl font-extrabold text-slate-800 mt-1">83.3%</h3>
-            <p class="text-xs text-emerald-600 font-semibold mt-1">5 Present / 1 Absent</p>
+            <h3 class="text-3xl font-extrabold text-slate-800 mt-1">${STUDENTS.length > 0 ? '100%' : '0%'}</h3>
+            <p class="text-xs text-emerald-600 font-semibold mt-1">Ready for marking</p>
           </div>
 
           ${currentUser.role === 'admin' ? `
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-indigo-500">
-              <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Fee Collection (Aug)</p>
+              <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Fee Collection</p>
               <h3 class="text-3xl font-extrabold text-slate-800 mt-1">₹${totalFeesCollected.toLocaleString()}</h3>
               <p class="text-xs text-indigo-600 font-semibold mt-1">Pending Fees: ₹${totalPendingFees.toLocaleString()}</p>
             </div>
@@ -353,25 +311,27 @@
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-amber-500">
               <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Staff Attendance Today</p>
               <h3 class="text-3xl font-extrabold text-slate-800 mt-1">100%</h3>
-              <p class="text-xs text-emerald-600 font-semibold mt-1">All teachers present</p>
+              <p class="text-xs text-emerald-600 font-semibold mt-1">System Active</p>
             </div>
           `}
         </div>
 
         <!-- Financial Trend Chart & Alerts -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <!-- Chart Box -->
           <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
             <h3 class="text-base font-bold text-slate-800 mb-4 flex items-center justify-between">
               <span>Financial Overview (Income vs Expense)</span>
-              <span class="text-xs font-semibold text-slate-400">Monthly Trend 2026</span>
+              <span class="text-xs font-semibold text-slate-400">Real-Time Ledger</span>
             </h3>
-            <div class="h-64">
-              <canvas id="financialChart"></canvas>
+            <div class="h-64 flex items-center justify-center border-2 border-dashed border-slate-200 rounded-xl">
+              <div class="text-center">
+                <i data-lucide="line-chart" class="w-10 h-10 text-slate-300 mx-auto mb-2"></i>
+                <p class="text-sm font-semibold text-slate-500">Clean Database — Ready for Financial Entries</p>
+                <p class="text-xs text-slate-400">Collect fees or log expenses to populate chart metrics</p>
+              </div>
             </div>
           </div>
 
-          <!-- School Announcements & Alerts -->
           <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
             <div>
               <h3 class="text-base font-bold text-slate-800 mb-3 flex items-center space-x-2">
@@ -379,44 +339,25 @@
                 <span>School Announcements</span>
               </h3>
               <div class="space-y-3">
-                ${ANNOUNCEMENTS.map(a => `
+                ${ANNOUNCEMENTS.length > 0 ? ANNOUNCEMENTS.map(a => `
                   <div class="p-3 bg-amber-50/80 border border-amber-200 rounded-xl">
                     <p class="text-xs font-bold text-amber-900">${a.title}</p>
                     <p class="text-xs text-amber-700 mt-1">${a.content}</p>
-                    <p class="text-[10px] text-amber-500 mt-2 font-medium">${a.date} • Target: ${a.target}</p>
                   </div>
-                `).join('')}
+                `).join('') : `
+                  <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-center">
+                    <p class="text-xs text-slate-500 font-medium">No announcements published yet.</p>
+                  </div>
+                `}
               </div>
             </div>
 
             <div class="mt-4 pt-3 border-t border-slate-100">
-              <p class="text-xs text-slate-400 font-medium">Quick System Status: <span class="text-emerald-600 font-bold">● Database Sync Active</span></p>
+              <p class="text-xs text-slate-400 font-medium">Quick System Status: <span class="text-emerald-600 font-bold">● Production Database Ready</span></p>
             </div>
           </div>
         </div>
       `;
-
-      // Render Chart.js
-      setTimeout(() => {
-        const ctx = document.getElementById('financialChart')?.getContext('2d');
-        if (ctx) {
-          new Chart(ctx, {
-            type: 'bar',
-            data: {
-              labels: ['May', 'Jun', 'Jul', 'Aug (Current)'],
-              datasets: [
-                { label: 'Fee Collection (₹)', data: [38000, 42000, 41000, totalFeesCollected], backgroundColor: '#0284c7', borderRadius: 6 },
-                { label: 'Total Expenses & Salaries (₹)', data: [31000, 34000, 33000, totalOutflow], backgroundColor: '#f59e0b', borderRadius: 6 }
-              ]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: { legend: { position: 'bottom' } }
-            }
-          });
-        }
-      }, 100);
     }
 
     function renderStudentsView(container) {
@@ -424,7 +365,7 @@
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
             <input type="text" placeholder="Search student name, ID or parent..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-sm w-72 outline-none focus:border-sky-500">
-            <span class="text-xs font-bold text-slate-500">Showing ${STUDENTS.length} Enrolled Students</span>
+            <button onclick="openAddStudentModal()" class="bg-sky-600 hover:bg-sky-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow">+ Add First Student</button>
           </div>
 
           <div class="overflow-x-auto">
@@ -441,28 +382,25 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100">
-                ${STUDENTS.map(s => `
+                ${STUDENTS.length > 0 ? STUDENTS.map(s => `
                   <tr class="hover:bg-slate-50">
                     <td class="p-4 font-mono font-bold text-sky-600">${s.student_id}</td>
-                    <td class="p-4">
-                      <p class="font-bold text-slate-900">${s.name}</p>
-                      <p class="text-xs text-slate-400">DOB: ${s.dob} (${s.gender})</p>
-                    </td>
+                    <td class="p-4"><p class="font-bold text-slate-900">${s.name}</p><p class="text-xs text-slate-400">DOB: ${s.dob} (${s.gender})</p></td>
                     <td class="p-4 font-semibold text-slate-700">${s.class} - ${s.section}</td>
-                    <td class="p-4">
-                      <p class="text-xs font-semibold text-slate-800">F: ${s.father}</p>
-                      <p class="text-xs text-slate-500">M: ${s.mother} (${s.mobile})</p>
-                    </td>
+                    <td class="p-4"><p class="text-xs font-semibold text-slate-800">F: ${s.father}</p><p class="text-xs text-slate-500">M: ${s.mother} (${s.mobile})</p></td>
                     <td class="p-4 font-mono text-xs text-red-600 font-bold">${s.emergency}</td>
-                    <td class="p-4 text-xs text-slate-500">
-                      <p><span class="font-bold text-amber-700">Health:</span> ${s.medical}</p>
-                      <p><span class="font-bold text-sky-700">Pickup:</span> ${s.pickup}</p>
-                    </td>
-                    <td class="p-4">
-                      <span class="bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full text-xs font-extrabold">Active</span>
+                    <td class="p-4 text-xs text-slate-500"><p><span class="font-bold text-amber-700">Health:</span> ${s.medical}</p><p><span class="font-bold text-sky-700">Pickup:</span> ${s.pickup}</p></td>
+                    <td class="p-4"><span class="bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full text-xs font-extrabold">Active</span></td>
+                  </tr>
+                `).join('') : `
+                  <tr>
+                    <td colspan="7" class="p-12 text-center text-slate-400">
+                      <i data-lucide="users" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
+                      <p class="font-bold text-slate-600 text-base">No Students Enrolled Yet</p>
+                      <p class="text-xs mt-1">Click <strong>"+ Add First Student"</strong> above to admit a student into Playgroup, Nursery, LKG or UKG.</p>
                     </td>
                   </tr>
-                `).join('')}
+                `}
               </tbody>
             </table>
           </div>
@@ -475,9 +413,7 @@
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
             <h3 class="font-bold text-slate-800 text-sm">Issued Fee Receipts & Collection Ledger</h3>
-            <button onclick="openCollectFeeModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow">
-              + Generate Fee Receipt
-            </button>
+            <button onclick="openCollectFeeModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow">+ Generate Fee Receipt</button>
           </div>
 
           <table class="w-full text-left text-sm text-slate-600">
@@ -493,28 +429,27 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
-              ${PAYMENTS.map(p => `
+              ${PAYMENTS.length > 0 ? PAYMENTS.map(p => `
                 <tr class="hover:bg-slate-50">
                   <td class="p-4 font-mono font-bold text-sky-600">${p.receipt_no}</td>
-                  <td class="p-4">
-                    <p class="font-bold text-slate-900">${p.student_name}</p>
-                    <p class="text-xs text-slate-400">${p.class}</p>
-                  </td>
-                  <td class="p-4">
-                    <p class="text-xs font-semibold text-slate-800">${p.fee_type}</p>
-                    <p class="text-xs text-slate-400">${p.month}</p>
-                  </td>
+                  <td class="p-4"><p class="font-bold text-slate-900">${p.student_name}</p><p class="text-xs text-slate-400">${p.class}</p></td>
+                  <td class="p-4"><p class="text-xs font-semibold text-slate-800">${p.fee_type}</p><p class="text-xs text-slate-400">${p.month}</p></td>
                   <td class="p-4 font-bold text-emerald-600">₹${p.paid.toLocaleString()}</td>
                   <td class="p-4 font-bold ${p.balance > 0 ? 'text-amber-600' : 'text-slate-400'}">₹${p.balance.toLocaleString()}</td>
-                  <td class="p-4 text-xs font-medium">${p.mode} <br/><span class="text-[10px] text-slate-400">${p.ref}</span></td>
+                  <td class="p-4 text-xs font-medium">${p.mode}</td>
                   <td class="p-4">
-                    <button onclick="printReceipt('${p.id}')" class="bg-sky-50 text-sky-600 hover:bg-sky-100 px-2.5 py-1 rounded-lg text-xs font-bold flex items-center space-x-1">
-                      <i data-lucide="printer" class="w-3.5 h-3.5"></i>
-                      <span>Print Receipt</span>
-                    </button>
+                    <button onclick="printReceipt('${p.id}')" class="bg-sky-50 text-sky-600 hover:bg-sky-100 px-2.5 py-1 rounded-lg text-xs font-bold">Print</button>
                   </td>
                 </tr>
-              `).join('')}
+              `).join('') : `
+                <tr>
+                  <td colspan="7" class="p-12 text-center text-slate-400">
+                    <i data-lucide="credit-card" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
+                    <p class="font-bold text-slate-600 text-base">No Fee Receipts Generated Yet</p>
+                    <p class="text-xs mt-1">Click <strong>"+ Generate Fee Receipt"</strong> to issue an official fee receipt.</p>
+                  </td>
+                </tr>
+              `}
             </tbody>
           </table>
         </div>
@@ -529,27 +464,27 @@
               <h3 class="font-bold text-slate-900 text-base">Class Attendance Register — ${new Date().toISOString().split('T')[0]}</h3>
               <p class="text-xs text-slate-500">Teacher marks daily attendance; HOD and Admin hold edit override privileges</p>
             </div>
-            <button onclick="markAllPresent()" class="bg-sky-100 text-sky-700 hover:bg-sky-200 px-3 py-1.5 rounded-lg text-xs font-bold">
-              ✔ Mark All Present
-            </button>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            ${STUDENTS.map(s => `
-              <div class="p-4 rounded-xl border ${ATTENDANCE[s.id] === 'Present' ? 'bg-emerald-50/50 border-emerald-200' : 'bg-red-50/50 border-red-200'} flex justify-between items-center">
-                <div>
-                  <p class="font-bold text-slate-900 text-sm">${s.name}</p>
-                  <p class="text-xs text-slate-500">${s.class} - ${s.section} (${s.student_id})</p>
+          ${STUDENTS.length > 0 ? `
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              ${STUDENTS.map(s => `
+                <div class="p-4 rounded-xl border ${ATTENDANCE[s.id] === 'Present' ? 'bg-emerald-50/50 border-emerald-200' : 'bg-red-50/50 border-red-200'} flex justify-between items-center">
+                  <div><p class="font-bold text-slate-900 text-sm">${s.name}</p><p class="text-xs text-slate-500">${s.class} - ${s.section}</p></div>
+                  <select onchange="toggleAttendance('${s.id}', this.value)" class="bg-white border rounded px-2 py-1 text-xs font-bold outline-none">
+                    <option value="Present">Present</option>
+                    <option value="Absent">Absent</option>
+                  </select>
                 </div>
-                <select onchange="toggleAttendance('${s.id}', this.value)" class="bg-white border rounded px-2 py-1 text-xs font-bold outline-none">
-                  <option value="Present" ${ATTENDANCE[s.id] === 'Present' ? 'selected' : ''}>Present</option>
-                  <option value="Absent" ${ATTENDANCE[s.id] === 'Absent' ? 'selected' : ''}>Absent</option>
-                  <option value="Half Day" ${ATTENDANCE[s.id] === 'Half Day' ? 'selected' : ''}>Half Day</option>
-                  <option value="Leave" ${ATTENDANCE[s.id] === 'Leave' ? 'selected' : ''}>Leave</option>
-                </select>
-              </div>
-            `).join('')}
-          </div>
+              `).join('')}
+            </div>
+          ` : `
+            <div class="p-12 text-center text-slate-400">
+              <i data-lucide="calendar-check" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
+              <p class="font-bold text-slate-600">No Students Available for Attendance</p>
+              <p class="text-xs mt-1">Admit students first to start marking class attendance.</p>
+            </div>
+          `}
         </div>
       `;
     }
@@ -557,8 +492,9 @@
     function renderPayrollView(container) {
       container.innerHTML = `
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div class="p-4 border-b border-slate-100 bg-slate-50">
-            <h3 class="font-bold text-slate-800 text-sm">Monthly Payroll Register (August 2026)</h3>
+          <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+            <h3 class="font-bold text-slate-800 text-sm">Monthly Payroll Register</h3>
+            <button onclick="openAddStaffModal()" class="bg-sky-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold">+ Add Staff Member</button>
           </div>
 
           <table class="w-full text-left text-sm text-slate-600">
@@ -574,26 +510,25 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
-              ${STAFF.map(st => `
+              ${STAFF.length > 0 ? STAFF.map(st => `
                 <tr class="hover:bg-slate-50">
-                  <td class="p-4">
-                    <p class="font-bold text-slate-900">${st.name}</p>
-                    <p class="text-xs font-mono text-slate-400">${st.emp_id}</p>
-                  </td>
+                  <td class="p-4"><p class="font-bold text-slate-900">${st.name}</p><p class="text-xs font-mono text-slate-400">${st.emp_id}</p></td>
                   <td class="p-4 text-xs font-semibold">${st.role} (${st.class_assigned})</td>
                   <td class="p-4">₹${st.basic.toLocaleString()} + ₹${st.allowances.toLocaleString()}</td>
                   <td class="p-4 text-emerald-600 font-semibold">+₹${st.overtime.toLocaleString()}</td>
                   <td class="p-4 text-red-600 font-semibold">-₹${(st.advances + st.deductions).toLocaleString()}</td>
-                  <td class="p-4 font-extrabold text-slate-900">
-                    ${currentUser.role === 'admin' ? `₹${st.net.toLocaleString()}` : (st.name === currentUser.name ? `₹${st.net.toLocaleString()}` : '•••••• (Admin Restricted)')}
-                  </td>
-                  <td class="p-4">
-                    <span class="px-2.5 py-1 rounded-full text-xs font-bold ${st.status === 'Paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">
-                      ${st.status}
-                    </span>
+                  <td class="p-4 font-extrabold text-slate-900">₹${st.net.toLocaleString()}</td>
+                  <td class="p-4"><span class="px-2.5 py-1 rounded-full text-xs font-bold ${st.status === 'Paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${st.status}</span></td>
+                </tr>
+              `).join('') : `
+                <tr>
+                  <td colspan="7" class="p-12 text-center text-slate-400">
+                    <i data-lucide="dollar-sign" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
+                    <p class="font-bold text-slate-600">No Staff Members Added Yet</p>
+                    <p class="text-xs mt-1">Add staff members to calculate monthly salaries.</p>
                   </td>
                 </tr>
-              `).join('')}
+              `}
             </tbody>
           </table>
         </div>
@@ -621,7 +556,7 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
-              ${EXPENSES.map(e => `
+              ${EXPENSES.length > 0 ? EXPENSES.map(e => `
                 <tr class="hover:bg-slate-50">
                   <td class="p-4 text-xs font-medium">${e.date}</td>
                   <td class="p-4"><span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-xs font-bold uppercase">${e.category}</span></td>
@@ -631,7 +566,15 @@
                   <td class="p-4 text-xs font-medium">${e.paid_by}</td>
                   <td class="p-4 font-mono text-xs text-sky-600 font-bold">${e.receipt}</td>
                 </tr>
-              `).join('')}
+              `).join('') : `
+                <tr>
+                  <td colspan="7" class="p-12 text-center text-slate-400">
+                    <i data-lucide="wallet" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
+                    <p class="font-bold text-slate-600">No Expenses Recorded Yet</p>
+                    <p class="text-xs mt-1">Click <strong>"+ Add Expense"</strong> to record school operational expenses.</p>
+                  </td>
+                </tr>
+              `}
             </tbody>
           </table>
         </div>
@@ -669,19 +612,20 @@
       container.innerHTML = `
         <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
           <h3 class="font-bold text-slate-900 text-base">Pending Staff Leave Applications</h3>
-          ${LEAVES.map(l => `
+          ${LEAVES.length > 0 ? LEAVES.map(l => `
             <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl flex justify-between items-center">
               <div>
                 <h4 class="font-bold text-slate-800">${l.staff_name} (${l.role})</h4>
                 <p class="text-xs text-slate-500">${l.type} • Dates: ${l.dates}</p>
                 <p class="text-xs text-slate-600 mt-1"><strong>Reason:</strong> ${l.reason}</p>
               </div>
-              <div class="flex space-x-2">
-                <button onclick="alert('Leave Approved!')" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold">Approve</button>
-                <button onclick="alert('Leave Rejected')" class="bg-red-50 text-red-600 border border-red-200 px-3 py-1.5 rounded-lg text-xs font-bold">Reject</button>
-              </div>
             </div>
-          `).join('')}
+          `).join('') : `
+            <div class="p-12 text-center text-slate-400">
+              <i data-lucide="clock" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
+              <p class="font-bold text-slate-600">No Pending Leave Requests</p>
+            </div>
+          `}
         </div>
       `;
     }
@@ -694,48 +638,8 @@
       ATTENDANCE[studentId] = newStatus;
     }
 
-    function markAllPresent() {
-      STUDENTS.forEach(s => ATTENDANCE[s.id] = 'Present');
-      renderAttendanceView(document.getElementById('tabContent'));
-    }
-
     function downloadCsv(reportName) {
       alert(`Exporting [${reportName}] as CSV file...`);
-    }
-
-    function printReceipt(receiptId) {
-      const p = PAYMENTS.find(rec => rec.id === receiptId);
-      if (!p) return;
-
-      const modalOverlay = document.getElementById('modalOverlay');
-      const modalContainer = document.getElementById('modalContainer');
-
-      modalContainer.innerHTML = `
-        <div id="printable-receipt-modal" class="space-y-4">
-          <div class="text-center border-b pb-3">
-            <h2 class="text-xl font-bold text-sky-600">The Little Wings Play School</h2>
-            <p class="text-xs text-slate-500">Official Student Fee Receipt</p>
-          </div>
-
-          <div class="space-y-2 text-sm">
-            <div class="flex justify-between"><span class="text-slate-500">Receipt No:</span><span class="font-mono font-bold">${p.receipt_no}</span></div>
-            <div class="flex justify-between"><span class="text-slate-500">Date:</span><span>${p.date}</span></div>
-            <div class="flex justify-between"><span class="text-slate-500">Student Name:</span><span class="font-bold">${p.student_name}</span></div>
-            <div class="flex justify-between"><span class="text-slate-500">Class & Sec:</span><span>${p.class}</span></div>
-            <div class="flex justify-between"><span class="text-slate-500">Fee Category:</span><span>${p.fee_type}</span></div>
-            <div class="flex justify-between"><span class="text-slate-500">Payment Mode:</span><span>${p.mode} (${p.ref})</span></div>
-            <div class="flex justify-between pt-2 border-t font-bold text-base"><span class="text-slate-800">Amount Paid:</span><span class="text-emerald-600">₹${p.paid.toLocaleString()}</span></div>
-            <div class="flex justify-between text-xs text-amber-700 font-semibold"><span>Remaining Balance:</span><span>₹${p.balance.toLocaleString()}</span></div>
-          </div>
-
-          <div class="pt-4 flex space-x-3 print:hidden">
-            <button onclick="window.print()" class="flex-1 bg-sky-600 text-white font-bold py-2 rounded-xl text-xs hover:bg-sky-700">Print Receipt</button>
-            <button onclick="closeModal()" class="px-4 bg-slate-100 text-slate-700 py-2 rounded-xl text-xs font-bold hover:bg-slate-200">Close</button>
-          </div>
-        </div>
-      `;
-      modalOverlay.classList.remove('hidden');
-      modalOverlay.classList.add('flex');
     }
 
     function openAddStudentModal() {
