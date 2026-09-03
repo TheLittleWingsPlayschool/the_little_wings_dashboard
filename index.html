@@ -378,6 +378,7 @@
                   <th class="p-4">Parent Details</th>
                   <th class="p-4">Emergency Contact</th>
                   <th class="p-4">Status</th>
+                  <th class="p-4 text-center">Actions</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100">
@@ -391,10 +392,18 @@
                     <td class="p-4"><p class="text-xs font-semibold text-slate-800">F: ${s.father}</p><p class="text-xs text-slate-500">M: ${s.mother} (${s.mobile})</p></td>
                     <td class="p-4 font-mono text-xs text-red-600 font-bold">${s.emergency}</td>
                     <td class="p-4"><span class="bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full text-xs font-extrabold">Active</span></td>
+                    <td class="p-4 text-center space-x-1">
+                      <button onclick="openEditStudentModal('${s.id}')" title="Edit Student Profile" class="p-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg font-bold text-xs">
+                        <i data-lucide="pencil" class="w-4 h-4"></i>
+                      </button>
+                      <button onclick="deleteStudent('${s.id}')" title="Delete Student Record" class="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-bold text-xs">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                      </button>
+                    </td>
                   </tr>
                 `).join('') : `
                   <tr>
-                    <td colspan="8" class="p-12 text-center text-slate-400">
+                    <td colspan="9" class="p-12 text-center text-slate-400">
                       <i data-lucide="users" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
                       <p class="font-bold text-slate-600 text-base">No Students Enrolled Yet</p>
                       <p class="text-xs mt-1">Click <strong>"+ Add Student"</strong> above to admit a student into Playgroup, Nursery, LKG or UKG.</p>
@@ -406,6 +415,7 @@
           </div>
         </div>
       `;
+      lucide.createIcons();
     }
 
     function renderFeesView(container) {
@@ -631,7 +641,7 @@
     }
 
     // =========================================================================
-    // NEW STUDENT ADMISSION MODAL (WITH ADMISSION DATE FIELD)
+    // STUDENT ADMISSION, EDIT, DELETE & CONFIRMATION POPUP ENGINE
     // =========================================================================
 
     function toggleAttendance(studentId, newStatus) {
@@ -727,21 +737,174 @@
       const mother = document.getElementById('new_mother').value || 'Mother';
       const mobile = document.getElementById('new_mobile').value || '9876543210';
 
-      const currentYear = new Date().getFullYear(); // 2026
-      const seqNum = String(STUDENTS.length + 1).padStart(3, '0'); // 001, 002...
+      const currentYear = new Date().getFullYear();
+      const seqNum = String(STUDENTS.length + 1).padStart(3, '0');
       const student_id = `LW-${currentYear}-${seqNum}`;
-      const newId = 's' + (STUDENTS.length + 1);
+      const newId = 's' + Date.now();
 
-      STUDENTS.push({
+      const tempStudent = {
         id: newId, student_id, name, class: className, section, dob, gender, status: 'Active',
-        admission_date: admDate,
-        father, mother, mobile, emergency: mobile, address: 'Campus Enclave', medical: 'None', pickup: 'Parents'
-      });
+        admission_date: admDate, father, mother, mobile, emergency: mobile, address: 'Campus Enclave', medical: 'None', pickup: 'Parents'
+      };
 
-      ATTENDANCE[newId] = 'Present';
+      // RENDER CONFIRMATION POPUP MODAL
+      const modalContainer = document.getElementById('modalContainer');
+      modalContainer.innerHTML = `
+        <div class="text-center space-y-4">
+          <div class="w-12 h-12 bg-sky-100 text-sky-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
+            <i data-lucide="user-check" class="w-6 h-6"></i>
+          </div>
+          <h3 class="font-extrabold text-slate-900 text-lg">Confirm Student Admission</h3>
+          <p class="text-xs text-slate-500">Please review and confirm the student admission details:</p>
+          
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-left text-xs space-y-2">
+            <div class="flex justify-between border-b pb-1">
+              <span class="text-slate-500 font-semibold">Assigned Student ID:</span>
+              <span class="font-mono font-bold text-sky-600">${student_id}</span>
+            </div>
+            <div class="flex justify-between border-b pb-1">
+              <span class="text-slate-500 font-semibold">Student Name:</span>
+              <span class="font-bold text-slate-900">${name} (${gender})</span>
+            </div>
+            <div class="flex justify-between border-b pb-1">
+              <span class="text-slate-500 font-semibold">Class Level & Sec:</span>
+              <span class="font-bold text-slate-800">${className} - ${section}</span>
+            </div>
+            <div class="flex justify-between border-b pb-1">
+              <span class="text-slate-500 font-semibold">Admission Date:</span>
+              <span class="font-semibold text-slate-800">${admDate}</span>
+            </div>
+            <div class="flex justify-between border-b pb-1">
+              <span class="text-slate-500 font-semibold">Parent Contact:</span>
+              <span class="text-slate-700">${father} / ${mother} (${mobile})</span>
+            </div>
+          </div>
+
+          <div class="flex space-x-2 pt-2 border-t">
+            <button id="confirmSaveBtn" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-bold text-xs shadow">Yes, Confirm & Save</button>
+            <button onclick="openAddStudentModal()" class="px-4 bg-slate-100 text-slate-700 py-2.5 rounded-xl font-bold text-xs hover:bg-slate-200">Back to Edit</button>
+          </div>
+        </div>
+      `;
+      lucide.createIcons();
+
+      document.getElementById('confirmSaveBtn').onclick = function() {
+        STUDENTS.push(tempStudent);
+        ATTENDANCE[newId] = 'Present';
+        saveToLocalStorage();
+        closeModal();
+        setActiveTab('students');
+      };
+    }
+
+    function openEditStudentModal(studentId) {
+      const student = STUDENTS.find(s => s.id === studentId);
+      if (!student) return;
+
+      const modalOverlay = document.getElementById('modalOverlay');
+      const modalContainer = document.getElementById('modalContainer');
+
+      modalContainer.innerHTML = `
+        <h3 class="font-bold text-slate-900 text-lg border-b pb-2 flex items-center justify-between">
+          <span>Edit Student Profile</span>
+          <span class="text-xs font-mono text-sky-600">${student.student_id}</span>
+        </h3>
+        <div class="space-y-3 text-xs">
+          <div>
+            <label class="font-bold text-slate-700">Student Full Name</label>
+            <input id="edit_name" type="text" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500" value="${student.name}">
+          </div>
+          
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="font-bold text-slate-700">Gender</label>
+              <select id="edit_gender" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500 bg-white font-semibold">
+                <option value="Boy" ${student.gender === 'Boy' ? 'selected' : ''}>👦 Boy</option>
+                <option value="Girl" ${student.gender === 'Girl' ? 'selected' : ''}>👧 Girl</option>
+              </select>
+            </div>
+            <div>
+              <label class="font-bold text-slate-700">Class Level</label>
+              <select id="edit_class" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500 bg-white font-semibold">
+                <option ${student.class === 'Playgroup' ? 'selected' : ''}>Playgroup</option>
+                <option ${student.class === 'Nursery' ? 'selected' : ''}>Nursery</option>
+                <option ${student.class === 'LKG' ? 'selected' : ''}>LKG</option>
+                <option ${student.class === 'UKG' ? 'selected' : ''}>UKG</option>
+              </select>
+            </div>
+            <div>
+              <label class="font-bold text-slate-700">Section</label>
+              <input id="edit_sec" type="text" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500 font-semibold" value="${student.section}">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="font-bold text-slate-700">Admission Date</label>
+              <input id="edit_adm_date" type="date" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500 font-semibold" value="${student.admission_date || ''}">
+            </div>
+            <div>
+              <label class="font-bold text-slate-700">Date of Birth</label>
+              <input id="edit_dob" type="date" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500" value="${student.dob}">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="font-bold text-slate-700">Father Name</label>
+              <input id="edit_father" type="text" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500" value="${student.father}">
+            </div>
+            <div>
+              <label class="font-bold text-slate-700">Mother Name</label>
+              <input id="edit_mother" type="text" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500" value="${student.mother}">
+            </div>
+          </div>
+
+          <div>
+            <label class="font-bold text-slate-700">Mobile Number</label>
+            <input id="edit_mobile" type="text" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500" value="${student.mobile}">
+          </div>
+        </div>
+
+        <div class="flex space-x-2 pt-3 border-t">
+          <button onclick="saveEditedStudent('${student.id}')" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-bold text-xs shadow">Save Changes</button>
+          <button onclick="closeModal()" class="px-4 bg-slate-100 text-slate-700 py-2.5 rounded-xl font-bold text-xs hover:bg-slate-200">Cancel</button>
+        </div>
+      `;
+      modalOverlay.classList.remove('hidden');
+      modalOverlay.classList.add('flex');
+    }
+
+    function saveEditedStudent(studentId) {
+      const student = STUDENTS.find(s => s.id === studentId);
+      if (!student) return;
+
+      student.name = document.getElementById('edit_name').value;
+      student.gender = document.getElementById('edit_gender').value;
+      student.class = document.getElementById('edit_class').value;
+      student.section = document.getElementById('edit_sec').value;
+      student.admission_date = document.getElementById('edit_adm_date').value;
+      student.dob = document.getElementById('edit_dob').value;
+      student.father = document.getElementById('edit_father').value;
+      student.mother = document.getElementById('edit_mother').value;
+      student.mobile = document.getElementById('edit_mobile').value;
+      student.emergency = student.mobile;
+
       saveToLocalStorage();
       closeModal();
-      setActiveTab('students');
+      renderCurrentView();
+    }
+
+    function deleteStudent(studentId) {
+      const student = STUDENTS.find(s => s.id === studentId);
+      if (!student) return;
+
+      if (confirm(`Are you sure you want to delete student "${student.name}" (${student.student_id})? This will permanently remove the record.`)) {
+        STUDENTS = STUDENTS.filter(s => s.id !== studentId);
+        delete ATTENDANCE[studentId];
+        saveToLocalStorage();
+        renderCurrentView();
+      }
     }
 
     function openAddExpenseModal() {
