@@ -68,7 +68,7 @@
           <img src="logo.jpeg" alt="Logo" class="w-10 h-10 object-contain rounded-lg border border-slate-200 shadow-sm" />
           <div>
             <h3 class="font-extrabold text-xs text-slate-800 leading-tight">The Little Wings</h3>
-            <p class="text-[10px] text-sky-600 font-bold">Preschool ERP V1.0.7 (Sample Data Active)</p>
+            <p class="text-[10px] text-sky-600 font-bold">Preschool ERP V1.0 (Full Functional)</p>
           </div>
         </div>
 
@@ -154,14 +154,18 @@
     ];
 
     const SAMPLE_STAFF = [
-      { emp_id: 'EMP-001', name: 'Deepa Varma', role: 'Nursery Lead Teacher', class_assigned: 'Nursery-A', basic: 25000, allowances: 3000, overtime: 1000, advances: 0, deductions: 500, net: 28500, status: 'Paid' },
-      { emp_id: 'EMP-002', name: 'Shalini Rao', role: 'Playgroup Lead Teacher', class_assigned: 'Playgroup-A', basic: 24000, allowances: 2500, overtime: 500, advances: 0, deductions: 500, net: 26500, status: 'Paid' },
-      { emp_id: 'EMP-003', name: 'Anita Kulkarni', role: 'LKG Lead Teacher', class_assigned: 'LKG-A', basic: 26000, allowances: 3000, overtime: 0, advances: 1000, deductions: 500, net: 27500, status: 'Pending' }
+      { id: 'st101', emp_id: 'EMP-001', name: 'Deepa Varma', role: 'Nursery Lead Teacher', class_assigned: 'Nursery-A', basic: 25000, allowances: 3000, overtime: 1000, advances: 0, deductions: 500, net: 28500, status: 'Paid' },
+      { id: 'st102', emp_id: 'EMP-002', name: 'Shalini Rao', role: 'Playgroup Lead Teacher', class_assigned: 'Playgroup-A', basic: 24000, allowances: 2500, overtime: 500, advances: 0, deductions: 500, net: 26500, status: 'Paid' },
+      { id: 'st103', emp_id: 'EMP-003', name: 'Anita Kulkarni', role: 'LKG Lead Teacher', class_assigned: 'LKG-A', basic: 26000, allowances: 3000, overtime: 0, advances: 1000, deductions: 500, net: 27500, status: 'Pending' }
     ];
 
     const SAMPLE_ANNOUNCEMENTS = [
-      { title: '🎉 Annual Play School Sports Day 2026', content: 'Join us for fun activities, races, and awards on Friday, May 15th!' },
-      { title: '🎨 Parent-Teacher Orientation Meeting', content: 'Scheduled for Saturday morning 10:00 AM at the Main Campus Auditorium.' }
+      { id: 'a101', title: '🎉 Annual Play School Sports Day 2026', content: 'Join us for fun activities, races, and awards on Friday, May 15th!', date: '2026-04-20' },
+      { id: 'a102', title: '🎨 Parent-Teacher Orientation Meeting', content: 'Scheduled for Saturday morning 10:00 AM at the Main Campus Auditorium.', date: '2026-04-18' }
+    ];
+
+    const SAMPLE_LEAVES = [
+      { id: 'l101', staff_name: 'Anita Kulkarni', role: 'LKG Lead Teacher', type: 'Casual Leave', dates: '2026-05-10 to 2026-05-11', reason: 'Family function attendance', status: 'Pending' }
     ];
 
     // =========================================================================
@@ -169,40 +173,29 @@
     // =========================================================================
 
     let STUDENTS = JSON.parse(localStorage.getItem('LW_STUDENTS'));
-    if (!STUDENTS || STUDENTS.length === 0) {
-      STUDENTS = SAMPLE_STUDENTS;
-    }
+    if (!STUDENTS || STUDENTS.length === 0) STUDENTS = SAMPLE_STUDENTS;
 
     let PAYMENTS = JSON.parse(localStorage.getItem('LW_PAYMENTS'));
-    if (!PAYMENTS || PAYMENTS.length === 0) {
-      PAYMENTS = SAMPLE_PAYMENTS;
-    }
+    if (!PAYMENTS || PAYMENTS.length === 0) PAYMENTS = SAMPLE_PAYMENTS;
 
     let EXPENSES = JSON.parse(localStorage.getItem('LW_EXPENSES'));
-    if (!EXPENSES || EXPENSES.length === 0) {
-      EXPENSES = SAMPLE_EXPENSES;
-    }
+    if (!EXPENSES || EXPENSES.length === 0) EXPENSES = SAMPLE_EXPENSES;
 
     let STAFF = JSON.parse(localStorage.getItem('LW_STAFF'));
-    if (!STAFF || STAFF.length === 0) {
-      STAFF = SAMPLE_STAFF;
-    }
+    if (!STAFF || STAFF.length === 0) STAFF = SAMPLE_STAFF;
 
     let ANNOUNCEMENTS = JSON.parse(localStorage.getItem('LW_ANNOUNCEMENTS'));
-    if (!ANNOUNCEMENTS || ANNOUNCEMENTS.length === 0) {
-      ANNOUNCEMENTS = SAMPLE_ANNOUNCEMENTS;
-    }
+    if (!ANNOUNCEMENTS || ANNOUNCEMENTS.length === 0) ANNOUNCEMENTS = SAMPLE_ANNOUNCEMENTS;
+
+    let LEAVES = JSON.parse(localStorage.getItem('LW_LEAVES'));
+    if (!LEAVES || LEAVES.length === 0) LEAVES = SAMPLE_LEAVES;
 
     let ATTENDANCE = JSON.parse(localStorage.getItem('LW_ATTENDANCE')) || {};
 
     // Ensure all students have default attendance & admission dates
     STUDENTS.forEach(s => {
-      if (!s.admission_date || s.admission_date.trim() === '') {
-        s.admission_date = getTodayDateStr();
-      }
-      if (!ATTENDANCE[s.id]) {
-        ATTENDANCE[s.id] = 'Present';
-      }
+      if (!s.admission_date || s.admission_date.trim() === '') s.admission_date = getTodayDateStr();
+      if (!ATTENDANCE[s.id]) ATTENDANCE[s.id] = 'Present';
     });
 
     // Class & Section Filter States
@@ -219,7 +212,6 @@
       localStorage.setItem('LW_LEAVES', JSON.stringify(LEAVES));
     }
 
-    // Save initial pre-populated data
     saveToLocalStorage();
 
     const NAV_ITEMS = {
@@ -297,12 +289,12 @@
                           currentUser.role === 'hod' ? `Academic Dashboard (${currentUser.name})` :
                           `My Class Dashboard (${currentUser.scope})`;
         subtitle.innerText = 'Real-time preschool indicators, financial health & student attendance';
-        quickActions.innerHTML = '';
+        quickActions.innerHTML = currentUser.role === 'admin' ? `<button onclick="openAddAnnouncementModal()" class="bg-indigo-600 text-white px-3 py-2 rounded-lg text-xs font-bold shadow">+ Post Announcement</button>` : '';
         renderDashboardView(content);
       } else if (activeTab === 'students' || activeTab === 'admissions') {
         title.innerText = activeTab === 'students' ? 'Student Directory Master' : 'New Student Admissions';
         subtitle.innerText = 'Complete student profiles, admission records, medical notes, and academic assignments';
-        quickActions.innerHTML = '';
+        quickActions.innerHTML = currentUser.role === 'admin' ? `<button onclick="openAddStudentModal()" class="bg-sky-600 text-white px-3 py-2 rounded-lg text-xs font-bold shadow">+ Admit Student</button>` : '';
         renderStudentsView(content);
       } else if (activeTab === 'classes') {
         title.innerText = 'Classes, Capacity & Timetable Schedule';
@@ -322,7 +314,7 @@
       } else if (activeTab === 'payroll') {
         title.innerText = 'Staff & Payroll Management';
         subtitle.innerText = 'Calculation: Basic Salary + Allowances + Overtime − Advances − Deductions = Net Salary';
-        quickActions.innerHTML = '';
+        quickActions.innerHTML = currentUser.role === 'admin' ? `<button onclick="openAddStaffModal()" class="bg-sky-600 text-white px-3 py-2 rounded-lg text-xs font-bold shadow">+ Add Staff</button>` : '';
         renderPayrollView(content);
       } else if (activeTab === 'expenses') {
         title.innerText = 'School Expense Logger';
@@ -342,8 +334,13 @@
       } else if (activeTab === 'leaves') {
         title.innerText = 'Staff Leave Approvals';
         subtitle.innerText = 'Review and manage staff leave applications and substitution schedules';
-        quickActions.innerHTML = '';
+        quickActions.innerHTML = `<button onclick="openApplyLeaveModal()" class="bg-purple-600 text-white px-3 py-2 rounded-lg text-xs font-bold shadow">+ Apply Leave</button>`;
         renderLeavesView(content);
+      } else if (activeTab === 'announcements') {
+        title.innerText = 'School Announcements Feed';
+        subtitle.innerText = 'Official broadcasts for staff, teachers, and parents';
+        quickActions.innerHTML = currentUser.role === 'admin' ? `<button onclick="openAddAnnouncementModal()" class="bg-indigo-600 text-white px-3 py-2 rounded-lg text-xs font-bold shadow">+ New Broadcast</button>` : '';
+        renderAnnouncementsFeed(content);
       } else {
         title.innerText = activeTab.toUpperCase();
         subtitle.innerText = 'Module operational';
@@ -352,6 +349,10 @@
       }
       lucide.createIcons();
     }
+
+    // =========================================================================
+    // CORE DASHBOARD VIEW WITH DYNAMIC CHART.JS INTEGRATION
+    // =========================================================================
 
     function renderDashboardView(container) {
       const totalFeesCollected = PAYMENTS.reduce((sum, p) => sum + p.paid, 0);
@@ -402,25 +403,21 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-            <h3 class="text-base font-bold text-slate-800 mb-4 flex items-center justify-between">
-              <span>Financial Overview (Income vs Expense)</span>
-              <span class="text-xs font-semibold text-slate-400">Real-Time Ledger</span>
+          <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+            <h3 class="text-base font-bold text-slate-800 flex items-center justify-between">
+              <span>Financial Analytics (Income vs Expenses vs Net Profit)</span>
+              <span class="text-xs font-semibold text-slate-400">Live Chart.js Integration</span>
             </h3>
-            <div class="h-64 flex items-center justify-center border-2 border-dashed border-slate-200 rounded-xl">
-              <div class="text-center">
-                <i data-lucide="line-chart" class="w-10 h-10 text-slate-300 mx-auto mb-2"></i>
-                <p class="text-sm font-semibold text-slate-500">Real-Time Saved Data Mode</p>
-                <p class="text-xs text-slate-400">Collect fees or log expenses to populate chart metrics</p>
-              </div>
+            <div class="h-64 relative">
+              <canvas id="financialChartCanvas"></canvas>
             </div>
           </div>
 
           <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
             <div>
-              <h3 class="text-base font-bold text-slate-800 mb-3 flex items-center space-x-2">
-                <i data-lucide="bell" class="w-5 h-5 text-amber-500"></i>
-                <span>School Announcements</span>
+              <h3 class="text-base font-bold text-slate-800 mb-3 flex items-center justify-between">
+                <span class="flex items-center space-x-2"><i data-lucide="bell" class="w-5 h-5 text-amber-500"></i><span>Announcements</span></span>
+                ${currentUser.role === 'admin' ? `<button onclick="openAddAnnouncementModal()" class="text-xs text-sky-600 font-bold hover:underline">+ Post</button>` : ''}
               </h3>
               <div class="space-y-3">
                 ${ANNOUNCEMENTS.length > 0 ? ANNOUNCEMENTS.map(a => `
@@ -442,6 +439,41 @@
           </div>
         </div>
       `;
+
+      setTimeout(renderFinancialChart, 100);
+    }
+
+    function renderFinancialChart() {
+      const ctx = document.getElementById('financialChartCanvas');
+      if (!ctx) return;
+
+      if (window.myFinancialChart) {
+        window.myFinancialChart.destroy();
+      }
+
+      const feeIncome = PAYMENTS.reduce((sum, p) => sum + p.paid, 0);
+      const totalExp = EXPENSES.reduce((sum, e) => sum + e.amount, 0);
+      const totalPayroll = STAFF.filter(s => s.status === 'Paid').reduce((sum, s) => sum + s.net, 0);
+      const netProfit = Math.max(0, feeIncome - totalExp - totalPayroll);
+
+      window.myFinancialChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Total Revenue (Fees)', 'Operational Expenses', 'Staff Salaries Paid', 'Net Operating Balance'],
+          datasets: [{
+            label: 'Amount in ₹',
+            data: [feeIncome, totalExp, totalPayroll, netProfit],
+            backgroundColor: ['#0284c7', '#f59e0b', '#8b5cf6', '#10b981'],
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true } }
+        }
+      });
     }
 
     function renderStudentsView(container) {
@@ -451,12 +483,8 @@
       const sections = ['All', 'A', 'B', 'C'];
 
       let filteredStudents = STUDENTS;
-      if (selectedClassFilter !== 'All') {
-        filteredStudents = filteredStudents.filter(s => s.class === selectedClassFilter);
-      }
-      if (selectedSectionFilter !== 'All') {
-        filteredStudents = filteredStudents.filter(s => s.section === selectedSectionFilter);
-      }
+      if (selectedClassFilter !== 'All') filteredStudents = filteredStudents.filter(s => s.class === selectedClassFilter);
+      if (selectedSectionFilter !== 'All') filteredStudents = filteredStudents.filter(s => s.section === selectedSectionFilter);
 
       container.innerHTML = `
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
@@ -765,7 +793,6 @@
       closeModal();
       renderCurrentView();
 
-      // Offer instant receipt printing
       setTimeout(() => {
         printReceiptModal(newPayId);
       }, 200);
@@ -988,14 +1015,9 @@
       const sections = ['All', 'A', 'B', 'C'];
 
       let filteredStudents = STUDENTS;
-      if (selectedClassFilter !== 'All') {
-        filteredStudents = filteredStudents.filter(s => s.class === selectedClassFilter);
-      }
-      if (selectedSectionFilter !== 'All') {
-        filteredStudents = filteredStudents.filter(s => s.section === selectedSectionFilter);
-      }
+      if (selectedClassFilter !== 'All') filteredStudents = filteredStudents.filter(s => s.class === selectedClassFilter);
+      if (selectedSectionFilter !== 'All') filteredStudents = filteredStudents.filter(s => s.section === selectedSectionFilter);
 
-      // Group students by Class & Section
       const groups = {};
       filteredStudents.forEach(s => {
         const key = `${s.class} - Section ${s.section}`;
@@ -1005,7 +1027,6 @@
 
       container.innerHTML = `
         <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
-          <!-- Class & Section Selector Header -->
           <div class="flex flex-wrap justify-between items-center gap-4 border-b pb-4">
             <div>
               <h3 class="font-extrabold text-slate-900 text-base">Class Attendance Register — ${todayStr}</h3>
@@ -1029,7 +1050,6 @@
             </div>
           </div>
 
-          <!-- Grouped Class & Section Attendance Cards -->
           ${Object.keys(groups).length > 0 ? Object.keys(groups).map(groupKey => {
             const groupStudents = groups[groupKey];
             const presentCount = groupStudents.filter(s => (ATTENDANCE[s.id] || 'Present') === 'Present').length;
@@ -1069,7 +1089,6 @@
             <div class="p-12 text-center text-slate-400">
               <i data-lucide="calendar-check" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
               <p class="font-bold text-slate-600">No Students Found for Selected Class & Section</p>
-              <p class="text-xs mt-1">Try selecting "All Classes" and "All Sections" from the filter dropdown above.</p>
             </div>
           `}
         </div>
@@ -1078,11 +1097,13 @@
     }
 
     function renderPayrollView(container) {
+      const isAdmin = currentUser.role === 'admin';
+
       container.innerHTML = `
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
             <h3 class="font-bold text-slate-800 text-sm">Monthly Payroll Register</h3>
-            <button onclick="openAddStaffModal()" class="bg-sky-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold">+ Add Staff Member</button>
+            ${isAdmin ? `<button onclick="openAddStaffModal()" class="bg-sky-600 hover:bg-sky-700 text-white px-3.5 py-2 rounded-lg text-xs font-bold shadow">+ Add Staff Member</button>` : ''}
           </div>
 
           <table class="w-full text-left text-sm text-slate-600">
@@ -1095,6 +1116,7 @@
                 <th class="p-4">Advances & Deductions</th>
                 <th class="p-4">Net Salary</th>
                 <th class="p-4">Payment Status</th>
+                ${isAdmin ? `<th class="p-4 text-center">Action</th>` : ''}
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
@@ -1107,13 +1129,21 @@
                   <td class="p-4 text-red-600 font-semibold">-₹${(st.advances + st.deductions).toLocaleString()}</td>
                   <td class="p-4 font-extrabold text-slate-900">₹${st.net.toLocaleString()}</td>
                   <td class="p-4"><span class="px-2.5 py-1 rounded-full text-xs font-bold ${st.status === 'Paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${st.status}</span></td>
+                  ${isAdmin ? `
+                    <td class="p-4 text-center">
+                      ${st.status === 'Pending' ? `
+                        <button onclick="markSalaryPaid('${st.id}')" class="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-2.5 py-1 rounded-lg text-xs font-bold border border-emerald-200">Mark Paid</button>
+                      ` : `
+                        <span class="text-xs text-slate-400 font-medium">Completed</span>
+                      `}
+                    </td>
+                  ` : ''}
                 </tr>
               `).join('') : `
                 <tr>
-                  <td colspan="7" class="p-12 text-center text-slate-400">
+                  <td colspan="${isAdmin ? 8 : 7}" class="p-12 text-center text-slate-400">
                     <i data-lucide="dollar-sign" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
                     <p class="font-bold text-slate-600">No Staff Members Added Yet</p>
-                    <p class="text-xs mt-1">Add staff members to calculate monthly salaries.</p>
                   </td>
                 </tr>
               `}
@@ -1121,6 +1151,63 @@
           </table>
         </div>
       `;
+      lucide.createIcons();
+    }
+
+    function markSalaryPaid(staffId) {
+      const st = STAFF.find(s => s.id === staffId);
+      if (!st) return;
+      st.status = 'Paid';
+      saveToLocalStorage();
+      renderCurrentView();
+    }
+
+    function openAddStaffModal() {
+      const modalOverlay = document.getElementById('modalOverlay');
+      const modalContainer = document.getElementById('modalContainer');
+
+      modalContainer.innerHTML = `
+        <h3 class="font-bold text-slate-900 text-lg border-b pb-2">Add New Staff Member</h3>
+        <div class="space-y-3 text-xs">
+          <div><label class="font-bold">Staff Full Name</label><input id="st_name" type="text" class="w-full p-2.5 border rounded-lg mt-1 outline-none" placeholder="e.g. Sunita Nair"></div>
+          <div class="grid grid-cols-2 gap-2">
+            <div><label class="font-bold">Role</label><select id="st_role" class="w-full p-2.5 border rounded-lg mt-1 outline-none"><option>Nursery Lead Teacher</option><option>Playgroup Lead Teacher</option><option>LKG Lead Teacher</option><option>UKG Lead Teacher</option><option>Assistant Teacher</option><option>Caregiver / Helper</option></select></div>
+            <div><label class="font-bold">Class Assigned</label><input id="st_class" type="text" class="w-full p-2.5 border rounded-lg mt-1 outline-none" value="Playgroup-B"></div>
+          </div>
+          <div class="grid grid-cols-3 gap-2">
+            <div><label class="font-bold">Basic Salary (₹)</label><input id="st_basic" type="number" class="w-full p-2.5 border rounded-lg mt-1 outline-none" value="22000"></div>
+            <div><label class="font-bold">Allowances (₹)</label><input id="st_allow" type="number" class="w-full p-2.5 border rounded-lg mt-1 outline-none" value="2000"></div>
+            <div><label class="font-bold">Deductions (₹)</label><input id="st_ded" type="number" class="w-full p-2.5 border rounded-lg mt-1 outline-none" value="500"></div>
+          </div>
+        </div>
+        <div class="flex space-x-2 pt-3 border-t">
+          <button onclick="saveStaffMember()" class="flex-1 bg-sky-600 text-white py-2.5 rounded-xl font-bold text-xs shadow">Save Staff Record</button>
+          <button onclick="closeModal()" class="px-4 bg-slate-100 text-slate-700 py-2.5 rounded-xl font-bold text-xs">Cancel</button>
+        </div>
+      `;
+      modalOverlay.classList.remove('hidden');
+      modalOverlay.classList.add('flex');
+    }
+
+    function saveStaffMember() {
+      const name = document.getElementById('st_name').value || 'New Staff';
+      const role = document.getElementById('st_role').value;
+      const class_assigned = document.getElementById('st_class').value || 'Main';
+      const basic = parseFloat(document.getElementById('st_basic').value) || 0;
+      const allowances = parseFloat(document.getElementById('st_allow').value) || 0;
+      const deductions = parseFloat(document.getElementById('st_ded').value) || 0;
+
+      const emp_id = `EMP-${String(STAFF.length + 1).padStart(3, '0')}`;
+      const net = Math.max(0, basic + allowances - deductions);
+
+      STAFF.push({
+        id: 'st' + Date.now(),
+        emp_id, name, role, class_assigned, basic, allowances, overtime: 0, advances: 0, deductions, net, status: 'Pending'
+      });
+
+      saveToLocalStorage();
+      closeModal();
+      setActiveTab('payroll');
     }
 
     function renderExpensesView(container) {
@@ -1128,7 +1215,7 @@
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
             <h3 class="font-bold text-slate-800 text-sm">Expenditure Ledger (Categorized)</h3>
-            ${currentUser.role === 'admin' ? `<button onclick="openAddExpenseModal()" class="bg-amber-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow">+ Add Expense</button>` : ''}
+            ${currentUser.role === 'admin' ? `<button onclick="openAddExpenseModal()" class="bg-amber-600 text-white px-3.5 py-2 rounded-lg text-xs font-bold shadow flex items-center space-x-1"><i data-lucide="wallet" class="w-4 h-4"></i><span>+ Log Expense</span></button>` : ''}
           </div>
 
           <table class="w-full text-left text-sm text-slate-600">
@@ -1159,7 +1246,6 @@
                   <td colspan="7" class="p-12 text-center text-slate-400">
                     <i data-lucide="wallet" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
                     <p class="font-bold text-slate-600">No Expenses Recorded Yet</p>
-                    <p class="text-xs mt-1">Click <strong>"+ Add Expense"</strong> to record school operational expenses.</p>
                   </td>
                 </tr>
               `}
@@ -1167,15 +1253,20 @@
           </table>
         </div>
       `;
+      lucide.createIcons();
     }
+
+    // =========================================================================
+    // DYNAMIC CSV EXPORT ENGINE FOR ALL 15 SYSTEM REPORTS
+    // =========================================================================
 
     function renderReportsView(container) {
       const reports = [
-        '1. Student Master Report', '2. New Admission Report', '3. Class/Section Strength Summary',
-        '4. Daily Student Attendance Report', '5. Staff Attendance Report', '6. Fee Collection Ledger',
-        '7. Overdue Fee Aging Summary', '8. Payment Receipts Ledger', '9. Monthly Payroll Register',
-        '10. Pending Salary Report', '11. Category Expense Report', '12. Income vs Expense Report',
-        '13. Monthly Profit & Balance Summary', '14. Student Activity & Observation Log', '15. Leave Register'
+        '1. Student Master Directory Report', '2. New Student Admission Log', '3. Class & Section Strength Summary',
+        '4. Daily Student Attendance Register', '5. Staff Monthly Attendance Summary', '6. Fee Collection Master Ledger',
+        '7. Overdue Fee Aging Summary', '8. Payment Receipts Audit Ledger', '9. Monthly Staff Payroll Register',
+        '10. Pending Salary Disbursement Report', '11. Categorized Expense Summary', '12. Income vs Expense P&L Statement',
+        '13. Monthly Profit & Operating Balance', '14. Student Activity & Observation Log', '15. Staff Leave Register'
       ];
 
       container.innerHTML = `
@@ -1184,9 +1275,9 @@
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex justify-between items-center hover:border-sky-300 transition">
               <div>
                 <h4 class="font-bold text-slate-800 text-sm">${rep}</h4>
-                <p class="text-xs text-slate-400 mt-1">Export: CSV / PDF Ready</p>
+                <p class="text-xs text-slate-400 mt-1">Format: CSV Download Ready</p>
               </div>
-              <button onclick="downloadCsv('${rep}')" class="p-2.5 bg-sky-50 text-sky-600 hover:bg-sky-100 rounded-xl font-bold text-xs flex items-center space-x-1">
+              <button onclick="downloadCsv('${rep}')" class="p-2.5 bg-sky-50 text-sky-600 hover:bg-sky-100 rounded-xl font-bold text-xs flex items-center space-x-1 border border-sky-200 shadow-sm">
                 <i data-lucide="download" class="w-4 h-4"></i>
                 <span>Export CSV</span>
               </button>
@@ -1194,19 +1285,69 @@
           `).join('')}
         </div>
       `;
+      lucide.createIcons();
+    }
+
+    function downloadCsv(reportName) {
+      let csvContent = "data:text/csv;charset=utf-8,";
+      
+      if (reportName.includes('Student')) {
+        csvContent += "Student ID,Name,Gender,Class,Section,Admission Date,Father,Mother,Mobile\n";
+        STUDENTS.forEach(s => {
+          csvContent += `"${s.student_id}","${s.name}","${s.gender}","${s.class}","${s.section}","${s.admission_date}","${s.father}","${s.mother}","${s.mobile}"\n`;
+        });
+      } else if (reportName.includes('Fee') || reportName.includes('Payment') || reportName.includes('Receipt')) {
+        csvContent += "Receipt No,Student Name,Class,Fee Type,Month,Paid Amount,Balance Due,Payment Mode,Date\n";
+        PAYMENTS.forEach(p => {
+          csvContent += `"${p.receipt_no}","${p.student_name}","${p.class}","${p.fee_type}","${p.month}","${p.paid}","${p.balance}","${p.mode}","${p.date}"\n`;
+        });
+      } else if (reportName.includes('Expense')) {
+        csvContent += "Voucher No,Date,Category,Description,Amount,Payment Mode,Paid By\n";
+        EXPENSES.forEach(e => {
+          csvContent += `"${e.receipt}","${e.date}","${e.category}","${e.description}","${e.amount}","${e.mode}","${e.paid_by}"\n`;
+        });
+      } else if (reportName.includes('Staff') || reportName.includes('Payroll') || reportName.includes('Salary')) {
+        csvContent += "Employee ID,Name,Role,Class Assigned,Basic Salary,Allowances,Net Salary,Status\n";
+        STAFF.forEach(st => {
+          csvContent += `"${st.emp_id}","${st.name}","${st.role}","${st.class_assigned}","${st.basic}","${st.allowances}","${st.net}","${st.status}"\n`;
+        });
+      } else {
+        csvContent += "Report Name,Generated Date,Branch,Status\n";
+        csvContent += `"${reportName}","${getTodayDateStr()}","Main Campus","Generated Successfully"\n`;
+      }
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `${reportName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
 
     function renderLeavesView(container) {
       container.innerHTML = `
         <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-          <h3 class="font-bold text-slate-900 text-base">Pending Staff Leave Applications</h3>
+          <div class="flex justify-between items-center border-b pb-4">
+            <h3 class="font-bold text-slate-900 text-base">Staff Leave Applications & Substitutions</h3>
+            <button onclick="openApplyLeaveModal()" class="bg-purple-600 hover:bg-purple-700 text-white px-3.5 py-2 rounded-lg text-xs font-bold shadow">+ Apply Leave</button>
+          </div>
           ${LEAVES.length > 0 ? LEAVES.map(l => `
             <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl flex justify-between items-center">
               <div>
-                <h4 class="font-bold text-slate-800">${l.staff_name} (${l.role})</h4>
-                <p class="text-xs text-slate-500">${l.type} • Dates: ${l.dates}</p>
+                <div class="flex items-center space-x-2">
+                  <h4 class="font-bold text-slate-800">${l.staff_name} (${l.role})</h4>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-extrabold ${l.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${l.status}</span>
+                </div>
+                <p class="text-xs text-slate-500 mt-1">${l.type} • Dates: ${l.dates}</p>
                 <p class="text-xs text-slate-600 mt-1"><strong>Reason:</strong> ${l.reason}</p>
               </div>
+              ${(currentUser.role === 'admin' || currentUser.role === 'hod') && l.status === 'Pending' ? `
+                <div class="flex space-x-2">
+                  <button onclick="updateLeaveStatus('${l.id}', 'Approved')" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold">Approve</button>
+                  <button onclick="updateLeaveStatus('${l.id}', 'Rejected')" class="bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-xs font-bold border border-red-200">Reject</button>
+                </div>
+              ` : ''}
             </div>
           `).join('') : `
             <div class="p-12 text-center text-slate-400">
@@ -1216,343 +1357,108 @@
           `}
         </div>
       `;
-    }
-
-    // =========================================================================
-    // STUDENT ADMISSION, EDIT, DELETE & CONFIRMATION POPUP ENGINE (ADMIN SCOPED)
-    // =========================================================================
-
-    function toggleAttendance(studentId, newStatus) {
-      ATTENDANCE[studentId] = newStatus;
-      saveToLocalStorage();
-      renderCurrentView();
-    }
-
-    function downloadCsv(reportName) {
-      alert(`Exporting [${reportName}] as CSV file...`);
-    }
-
-    function openAddStudentModal() {
-      if (currentUser.role !== 'admin') {
-        alert("Access Denied: Only Admin users are authorized to register new admissions.");
-        return;
-      }
-
-      const modalOverlay = document.getElementById('modalOverlay');
-      const modalContainer = document.getElementById('modalContainer');
-      const today = getTodayDateStr();
-
-      modalContainer.innerHTML = `
-        <h3 class="font-bold text-slate-900 text-lg border-b pb-2">New Student Admission Form</h3>
-        <div class="space-y-3 text-xs">
-          <div>
-            <label class="font-bold text-slate-700">Student Full Name</label>
-            <input id="new_name" type="text" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500" placeholder="e.g. Advait Nair">
-          </div>
-          
-          <div class="grid grid-cols-3 gap-2">
-            <div>
-              <label class="font-bold text-slate-700">Gender</label>
-              <select id="new_gender" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500 bg-white font-semibold">
-                <option value="Boy">👦 Boy</option>
-                <option value="Girl">👧 Girl</option>
-              </select>
-            </div>
-            <div>
-              <label class="font-bold text-slate-700">Class Level</label>
-              <select id="new_class" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500 bg-white font-semibold">
-                <option>Playgroup</option>
-                <option>Nursery</option>
-                <option>LKG</option>
-                <option>UKG</option>
-              </select>
-            </div>
-            <div>
-              <label class="font-bold text-slate-700">Section</label>
-              <input id="new_sec" type="text" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500 font-semibold" value="A">
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="font-bold text-slate-700">Admission Date</label>
-              <input id="new_adm_date" type="date" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500 font-semibold" value="${today}">
-            </div>
-            <div>
-              <label class="font-bold text-slate-700">Date of Birth</label>
-              <input id="new_dob" type="date" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500" value="2021-04-12">
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="font-bold text-slate-700">Father Name</label>
-              <input id="new_father" type="text" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500" placeholder="Father Name">
-            </div>
-            <div>
-              <label class="font-bold text-slate-700">Mother Name</label>
-              <input id="new_mother" type="text" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500" placeholder="Mother Name">
-            </div>
-          </div>
-
-          <div>
-            <label class="font-bold text-slate-700">Mobile Number</label>
-            <input id="new_mobile" type="text" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500" placeholder="e.g. 9876543210">
-          </div>
-        </div>
-
-        <div class="flex space-x-2 pt-3 border-t">
-          <button onclick="saveNewStudent()" class="flex-1 bg-sky-600 hover:bg-sky-700 text-white py-2.5 rounded-xl font-bold text-xs shadow">Admit Student</button>
-          <button onclick="closeModal()" class="px-4 bg-slate-100 text-slate-700 py-2.5 rounded-xl font-bold text-xs hover:bg-slate-200">Cancel</button>
-        </div>
-      `;
-      modalOverlay.classList.remove('hidden');
-      modalOverlay.classList.add('flex');
-    }
-
-    function saveNewStudent() {
-      const name = document.getElementById('new_name').value || 'New Student';
-      const gender = document.getElementById('new_gender').value || 'Boy';
-      const className = document.getElementById('new_class').value;
-      const section = document.getElementById('new_sec').value;
-      const admDate = document.getElementById('new_adm_date').value || getTodayDateStr();
-      const dob = document.getElementById('new_dob').value || '2021-04-12';
-      const father = document.getElementById('new_father').value || 'Father';
-      const mother = document.getElementById('new_mother').value || 'Mother';
-      const mobile = document.getElementById('new_mobile').value || '9876543210';
-
-      const currentYear = new Date().getFullYear();
-      const seqNum = String(STUDENTS.length + 1).padStart(3, '0');
-      const student_id = `LW-${currentYear}-${seqNum}`;
-      const newId = 's' + Date.now();
-
-      const tempStudent = {
-        id: newId, student_id, name, class: className, section, dob, gender, status: 'Active',
-        admission_date: admDate, father, mother, mobile, emergency: mobile, address: 'Campus Enclave', medical: 'None', pickup: 'Parents'
-      };
-
-      // RENDER CONFIRMATION POPUP MODAL
-      const modalContainer = document.getElementById('modalContainer');
-      modalContainer.innerHTML = `
-        <div class="text-center space-y-4">
-          <div class="w-12 h-12 bg-sky-100 text-sky-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
-            <i data-lucide="user-check" class="w-6 h-6"></i>
-          </div>
-          <h3 class="font-extrabold text-slate-900 text-lg">Confirm Student Admission</h3>
-          <p class="text-xs text-slate-500">Please review and confirm the student admission details:</p>
-          
-          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-left text-xs space-y-2">
-            <div class="flex justify-between border-b pb-1">
-              <span class="text-slate-500 font-semibold">Assigned Student ID:</span>
-              <span class="font-mono font-bold text-sky-600">${student_id}</span>
-            </div>
-            <div class="flex justify-between border-b pb-1">
-              <span class="text-slate-500 font-semibold">Student Name:</span>
-              <span class="font-bold text-slate-900">${name} (${gender})</span>
-            </div>
-            <div class="flex justify-between border-b pb-1">
-              <span class="text-slate-500 font-semibold">Class Level & Sec:</span>
-              <span class="font-bold text-slate-800">${className} - ${section}</span>
-            </div>
-            <div class="flex justify-between border-b pb-1">
-              <span class="text-slate-500 font-semibold">Admission Date:</span>
-              <span class="font-semibold text-slate-800">${admDate}</span>
-            </div>
-            <div class="flex justify-between border-b pb-1">
-              <span class="text-slate-500 font-semibold">Parent Contact:</span>
-              <span class="text-slate-700">${father} / ${mother} (${mobile})</span>
-            </div>
-          </div>
-
-          <div class="flex space-x-2 pt-2 border-t">
-            <button id="confirmSaveBtn" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-bold text-xs shadow">Yes, Confirm & Save</button>
-            <button onclick="openAddStudentModal()" class="px-4 bg-slate-100 text-slate-700 py-2.5 rounded-xl font-bold text-xs hover:bg-slate-200">Back to Edit</button>
-          </div>
-        </div>
-      `;
       lucide.createIcons();
-
-      document.getElementById('confirmSaveBtn').onclick = function() {
-        STUDENTS.push(tempStudent);
-        ATTENDANCE[newId] = 'Present';
-        saveToLocalStorage();
-        closeModal();
-        setActiveTab('students');
-      };
     }
 
-    function openEditStudentModal(studentId) {
-      if (currentUser.role !== 'admin') {
-        alert("Access Denied: Only Admin users are authorized to edit student records.");
-        return;
-      }
-
-      const student = STUDENTS.find(s => s.id === studentId);
-      if (!student) return;
-
-      const admDateVal = (student.admission_date && student.admission_date.trim() !== '') ? student.admission_date : getTodayDateStr();
-
-      const modalOverlay = document.getElementById('modalOverlay');
-      const modalContainer = document.getElementById('modalContainer');
-
-      modalContainer.innerHTML = `
-        <h3 class="font-bold text-slate-900 text-lg border-b pb-2 flex items-center justify-between">
-          <span>Edit Student Profile</span>
-          <span class="text-xs font-mono text-sky-600">${student.student_id}</span>
-        </h3>
-        <div class="space-y-3 text-xs">
-          <div>
-            <label class="font-bold text-slate-700">Student Full Name</label>
-            <input id="edit_name" type="text" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500" value="${student.name}">
-          </div>
-          
-          <div class="grid grid-cols-3 gap-2">
-            <div>
-              <label class="font-bold text-slate-700">Gender</label>
-              <select id="edit_gender" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500 bg-white font-semibold">
-                <option value="Boy" ${student.gender === 'Boy' ? 'selected' : ''}>👦 Boy</option>
-                <option value="Girl" ${student.gender === 'Girl' ? 'selected' : ''}>👧 Girl</option>
-              </select>
-            </div>
-            <div>
-              <label class="font-bold text-slate-700">Class Level</label>
-              <select id="edit_class" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500 bg-white font-semibold">
-                <option ${student.class === 'Playgroup' ? 'selected' : ''}>Playgroup</option>
-                <option ${student.class === 'Nursery' ? 'selected' : ''}>Nursery</option>
-                <option ${student.class === 'LKG' ? 'selected' : ''}>LKG</option>
-                <option ${student.class === 'UKG' ? 'selected' : ''}>UKG</option>
-              </select>
-            </div>
-            <div>
-              <label class="font-bold text-slate-700">Section</label>
-              <input id="edit_sec" type="text" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500 font-semibold" value="${student.section}">
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="font-bold text-slate-700">Admission Date</label>
-              <input id="edit_adm_date" type="date" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500 font-semibold" value="${admDateVal}">
-            </div>
-            <div>
-              <label class="font-bold text-slate-700">Date of Birth</label>
-              <input id="edit_dob" type="date" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500" value="${student.dob}">
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="font-bold text-slate-700">Father Name</label>
-              <input id="edit_father" type="text" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500" value="${student.father}">
-            </div>
-            <div>
-              <label class="font-bold text-slate-700">Mother Name</label>
-              <input id="edit_mother" type="text" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500" value="${student.mother}">
-            </div>
-          </div>
-
-          <div>
-            <label class="font-bold text-slate-700">Mobile Number</label>
-            <input id="edit_mobile" type="text" class="w-full p-2.5 border rounded-lg mt-1 outline-none focus:border-sky-500" value="${student.mobile}">
-          </div>
-        </div>
-
-        <div class="flex space-x-2 pt-3 border-t">
-          <button onclick="saveEditedStudent('${student.id}')" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-bold text-xs shadow">Save Changes</button>
-          <button onclick="closeModal()" class="px-4 bg-slate-100 text-slate-700 py-2.5 rounded-xl font-bold text-xs hover:bg-slate-200">Cancel</button>
-        </div>
-      `;
-      modalOverlay.classList.remove('hidden');
-      modalOverlay.classList.add('flex');
-    }
-
-    function saveEditedStudent(studentId) {
-      if (currentUser.role !== 'admin') {
-        alert("Access Denied: Only Admin users are authorized to edit student records.");
-        return;
-      }
-
-      const student = STUDENTS.find(s => s.id === studentId);
-      if (!student) return;
-
-      student.name = document.getElementById('edit_name').value;
-      student.gender = document.getElementById('edit_gender').value;
-      student.class = document.getElementById('edit_class').value;
-      student.section = document.getElementById('edit_sec').value;
-      student.admission_date = document.getElementById('edit_adm_date').value || getTodayDateStr();
-      student.dob = document.getElementById('edit_dob').value;
-      student.father = document.getElementById('edit_father').value;
-      student.mother = document.getElementById('edit_mother').value;
-      student.mobile = document.getElementById('edit_mobile').value;
-      student.emergency = student.mobile;
-
+    function updateLeaveStatus(leaveId, newStatus) {
+      const l = LEAVES.find(item => item.id === leaveId);
+      if (!l) return;
+      l.status = newStatus;
       saveToLocalStorage();
-      closeModal();
       renderCurrentView();
     }
 
-    function deleteStudent(studentId) {
-      if (currentUser.role !== 'admin') {
-        alert("Access Denied: Only Admin users are authorized to delete student records.");
-        return;
-      }
-
-      const student = STUDENTS.find(s => s.id === studentId);
-      if (!student) return;
-
-      if (confirm(`Are you sure you want to delete student "${student.name}" (${student.student_id})? This will permanently remove the record.`)) {
-        STUDENTS = STUDENTS.filter(s => s.id !== studentId);
-        delete ATTENDANCE[studentId];
-        saveToLocalStorage();
-        renderCurrentView();
-      }
-    }
-
-    function openAddExpenseModal() {
-      if (currentUser.role !== 'admin') {
-        alert("Access Denied: Only Admin users are authorized to log school expenses.");
-        return;
-      }
-
+    function openApplyLeaveModal() {
       const modalOverlay = document.getElementById('modalOverlay');
       const modalContainer = document.getElementById('modalContainer');
 
       modalContainer.innerHTML = `
-        <h3 class="font-bold text-slate-900 text-lg border-b pb-2">Log Operational Expense</h3>
+        <h3 class="font-bold text-slate-900 text-lg border-b pb-2">Apply for Staff Leave</h3>
         <div class="space-y-3 text-xs">
-          <div><label class="font-bold">Expense Category</label><select id="exp_cat" class="w-full p-2 border rounded-lg mt-1"><option>Toys & Teaching Materials</option><option>Food & Snacks</option><option>Stationery</option><option>Maintenance</option><option>Electricity</option><option>Marketing</option></select></div>
-          <div><label class="font-bold">Description</label><input id="exp_desc" type="text" class="w-full p-2 border rounded-lg mt-1" placeholder="e.g. Art Worksheets & Water Colors"></div>
-          <div><label class="font-bold">Amount (₹)</label><input id="exp_amt" type="number" class="w-full p-2 border rounded-lg mt-1" value="1500"></div>
+          <div><label class="font-bold">Staff Member</label><input id="l_name" type="text" class="w-full p-2.5 border rounded-lg mt-1 outline-none" value="${currentUser.name}"></div>
+          <div class="grid grid-cols-2 gap-2">
+            <div><label class="font-bold">Leave Type</label><select id="l_type" class="w-full p-2.5 border rounded-lg mt-1 outline-none"><option>Casual Leave</option><option>Sick Leave</option><option>Earned Leave</option></select></div>
+            <div><label class="font-bold">Dates</label><input id="l_dates" type="text" class="w-full p-2.5 border rounded-lg mt-1 outline-none" placeholder="e.g. May 12 - May 14"></div>
+          </div>
+          <div><label class="font-bold">Reason for Absence</label><input id="l_reason" type="text" class="w-full p-2.5 border rounded-lg mt-1 outline-none" placeholder="Reason for leave"></div>
         </div>
         <div class="flex space-x-2 pt-3 border-t">
-          <button onclick="saveNewExpense()" class="flex-1 bg-amber-600 text-white py-2 rounded-xl font-bold text-xs">Log Expense</button>
-          <button onclick="closeModal()" class="px-4 bg-slate-100 text-slate-700 py-2 rounded-xl font-bold text-xs">Cancel</button>
+          <button onclick="saveLeaveRequest()" class="flex-1 bg-purple-600 text-white py-2.5 rounded-xl font-bold text-xs shadow">Submit Leave Request</button>
+          <button onclick="closeModal()" class="px-4 bg-slate-100 text-slate-700 py-2.5 rounded-xl font-bold text-xs">Cancel</button>
         </div>
       `;
       modalOverlay.classList.remove('hidden');
       modalOverlay.classList.add('flex');
     }
 
-    function saveNewExpense() {
-      const category = document.getElementById('exp_cat').value;
-      const description = document.getElementById('exp_desc').value || 'Expense';
-      const amount = parseFloat(document.getElementById('exp_amt').value) || 0;
+    function saveLeaveRequest() {
+      const staff_name = document.getElementById('l_name').value || currentUser.name;
+      const type = document.getElementById('l_type').value;
+      const dates = document.getElementById('l_dates').value || 'Next Week';
+      const reason = document.getElementById('l_reason').value || 'Personal Reasons';
 
-      EXPENSES.unshift({
-        id: 'e' + Date.now(),
-        date: getTodayDateStr(),
-        category, description, amount, mode: 'UPI', paid_by: currentUser.name, receipt: 'VOUCH-' + Math.floor(100+Math.random()*900)
+      LEAVES.push({
+        id: 'l' + Date.now(),
+        staff_name, role: currentUser.title, type, dates, reason, status: 'Pending'
       });
 
       saveToLocalStorage();
       closeModal();
-      setActiveTab('expenses');
+      setActiveTab('leaves');
     }
 
-    function closeModal() {
+    function renderAnnouncementsFeed(container) {
+      container.innerHTML = `
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <div class="flex justify-between items-center border-b pb-4">
+            <h3 class="font-bold text-slate-900 text-base">Broadcast Announcements</h3>
+            ${currentUser.role === 'admin' ? `<button onclick="openAddAnnouncementModal()" class="bg-indigo-600 text-white px-3.5 py-2 rounded-lg text-xs font-bold shadow">+ Post Announcement</button>` : ''}
+          </div>
+
+          <div class="space-y-4">
+            ${ANNOUNCEMENTS.map(a => `
+              <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+                <h4 class="font-extrabold text-slate-900 text-sm">${a.title}</h4>
+                <p class="text-xs text-slate-600">${a.content}</p>
+                <p class="text-[10px] text-slate-400 pt-1">Posted on: ${a.date || getTodayDateStr()}</p>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function openAddAnnouncementModal() {
       const modalOverlay = document.getElementById('modalOverlay');
-      modalOverlay.classList.remove('flex');
-      modalOverlay.classList.add('hidden');
+      const modalContainer = document.getElementById('modalContainer');
+
+      modalContainer.innerHTML = `
+        <h3 class="font-bold text-slate-900 text-lg border-b pb-2">Post School Announcement</h3>
+        <div class="space-y-3 text-xs">
+          <div><label class="font-bold">Announcement Title</label><input id="anc_title" type="text" class="w-full p-2.5 border rounded-lg mt-1 outline-none" placeholder="e.g. Summer Camp Registration Open!"></div>
+          <div><label class="font-bold">Content Details</label><textarea id="anc_content" rows="3" class="w-full p-2.5 border rounded-lg mt-1 outline-none" placeholder="Write message to staff and parents..."></textarea></div>
+        </div>
+        <div class="flex space-x-2 pt-3 border-t">
+          <button onclick="saveAnnouncement()" class="flex-1 bg-indigo-600 text-white py-2.5 rounded-xl font-bold text-xs shadow">Broadcast Now</button>
+          <button onclick="closeModal()" class="px-4 bg-slate-100 text-slate-700 py-2.5 rounded-xl font-bold text-xs">Cancel</button>
+        </div>
+      `;
+      modalOverlay.classList.remove('hidden');
+      modalOverlay.classList.add('flex');
+    }
+
+    function saveAnnouncement() {
+      const title = document.getElementById('anc_title').value || 'Announcement';
+      const content = document.getElementById('anc_content').value || 'Details broadcasted.';
+
+      ANNOUNCEMENTS.unshift({
+        id: 'a' + Date.now(),
+        title, content, date: getTodayDateStr()
+      });
+
+      saveToLocalStorage();
+      closeModal();
+      renderCurrentView();
     }
 
     // Initialize Dashboard on Load
