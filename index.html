@@ -63,8 +63,18 @@
       </div>
     </div>
 
-    <!-- Active User & Role Selector Bar + Reset / Clear Data Buttons -->
-    <div class="flex items-center space-x-2 mt-2 sm:mt-0">
+    <!-- Active User & Role Selector Bar + Cloud Database Sync Controls -->
+    <div class="flex items-center space-x-2.5 mt-2 sm:mt-0">
+      <div id="cloudSyncBadge" onclick="fetchFromCloudDB()" title="Click to sync live data from Cloud Database" class="bg-emerald-800/80 border border-emerald-400/40 text-emerald-100 text-xs px-2.5 py-1.5 rounded-xl flex items-center space-x-1.5 font-bold cursor-pointer hover:bg-emerald-700/80 transition">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span>Cloud Synced</span>
+      </div>
+
+      <button onclick="fetchFromCloudDB()" title="Force Sync live data from Cloud Database" class="bg-sky-500 hover:bg-sky-600 text-white px-2.5 py-1.5 rounded-xl text-xs font-bold shadow flex items-center space-x-1 border border-sky-400">
+        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+        <span class="hidden sm:inline">Sync Now</span>
+      </button>
+
       <div class="bg-sky-800/80 backdrop-blur border border-sky-400/30 px-3 py-1.5 rounded-xl flex items-center space-x-3 text-sm">
         <span class="text-sky-200 text-xs font-semibold uppercase tracking-wider">Logged in User:</span>
         <select id="userSelector" onchange="switchUser(this.value)" class="bg-white text-slate-900 font-bold px-3 py-1 rounded-lg text-sm outline-none cursor-pointer shadow-sm">
@@ -212,50 +222,90 @@
     let LEAVES = JSON.parse(localStorage.getItem('LW_LEAVES')) || [];
     let ATTENDANCE = JSON.parse(localStorage.getItem('LW_ATTENDANCE')) || {};
 
-    function resetAndLoadSampleData() {
-      STUDENTS = JSON.parse(JSON.stringify(DEMO_PRESET_STUDENTS));
-      PAYMENTS = JSON.parse(JSON.stringify(DEMO_PRESET_PAYMENTS));
-      EXPENSES = JSON.parse(JSON.stringify(DEMO_PRESET_EXPENSES));
-      STAFF = JSON.parse(JSON.stringify(DEMO_PRESET_STAFF));
-      ANNOUNCEMENTS = JSON.parse(JSON.stringify(DEMO_PRESET_ANNOUNCEMENTS));
-      LEAVES = JSON.parse(JSON.stringify(DEMO_PRESET_LEAVES));
+    // CLOUD DATABASE SYNC ENGINE (Firebase Realtime DB & REST API Sync)
+    let CLOUD_DB_ENDPOINT = localStorage.getItem('LW_CLOUD_DB_ENDPOINT') || 'https://the-little-wings-erp-default-rtdb.firebaseio.com/erp_store.json';
+    let isCloudSyncing = false;
 
-      ATTENDANCE = {};
-      STUDENTS.forEach(s => { ATTENDANCE[s.id] = 'Present'; });
-
-      saveToLocalStorage();
-      renderCurrentView();
-      alert("✅ Demo sample data loaded successfully! All sample students, fee receipts, staff, and expenses populated.");
+    function updateCloudStatusBadge(status, message) {
+      const badge = document.getElementById('cloudSyncBadge');
+      if (!badge) return;
+      if (status === 'synced') {
+        badge.className = 'bg-emerald-800/80 border border-emerald-400/40 text-emerald-100 text-xs px-2.5 py-1.5 rounded-xl flex items-center space-x-1.5 font-bold cursor-pointer hover:bg-emerald-700/80 transition';
+        badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span>' + (message || 'Cloud Synced') + '</span>';
+      } else if (status === 'syncing') {
+        badge.className = 'bg-amber-800/80 border border-amber-400/40 text-amber-100 text-xs px-2.5 py-1.5 rounded-xl flex items-center space-x-1.5 font-bold cursor-pointer';
+        badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400 animate-spin"></span><span>' + (message || 'Syncing...') + '</span>';
+      } else {
+        badge.className = 'bg-slate-800/80 border border-slate-400/40 text-slate-200 text-xs px-2.5 py-1.5 rounded-xl flex items-center space-x-1.5 font-bold cursor-pointer';
+        badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-slate-400"></span><span>' + (message || 'Local Only') + '</span>';
+      }
     }
 
-    function clearAllErpData() {
-      STUDENTS = [];
-      PAYMENTS = [];
-      EXPENSES = [];
-      STAFF = [];
-      ANNOUNCEMENTS = [];
-      LEAVES = [];
-      ATTENDANCE = {};
+    async function fetchFromCloudDB(silent = false) {
+      if (isCloudSyncing) return;
+      isCloudSyncing = true;
+      if (!silent) updateCloudStatusBadge('syncing', 'Syncing...');
+      try {
+        const response = await fetch(CLOUD_DB_ENDPOINT, { cache: 'no-store' });
+        if (response.ok) {
+          const data = await response.json();
+          if (data && typeof data === 'object' && (data.STUDENTS || data.PAYMENTS || data.STAFF || data.EXPENSES || data.ATTENDANCE)) {
+            if (Array.isArray(data.STUDENTS)) STUDENTS = data.STUDENTS;
+            if (Array.isArray(data.PAYMENTS)) PAYMENTS = data.PAYMENTS;
+            if (Array.isArray(data.EXPENSES)) EXPENSES = data.EXPENSES;
+            if (Array.isArray(data.STAFF)) STAFF = data.STAFF;
+            if (Array.isArray(data.ANNOUNCEMENTS)) ANNOUNCEMENTS = data.ANNOUNCEMENTS;
+            if (Array.isArray(data.LEAVES)) LEAVES = data.LEAVES;
+            if (data.ATTENDANCE && typeof data.ATTENDANCE === 'object') ATTENDANCE = data.ATTENDANCE;
 
-      localStorage.removeItem('LW_STUDENTS');
-      localStorage.removeItem('LW_PAYMENTS');
-      localStorage.removeItem('LW_EXPENSES');
-      localStorage.removeItem('LW_STAFF');
-      localStorage.removeItem('LW_ANNOUNCEMENTS');
-      localStorage.removeItem('LW_LEAVES');
-      localStorage.removeItem('LW_ATTENDANCE');
-
-      renderCurrentView();
-      alert("🗑️ All ERP data has been completely cleared. Your database is now 100% empty across all modules.");
+            saveToLocalStorageQuietly();
+            renderCurrentView();
+            updateCloudStatusBadge('synced', 'Live Cloud Synced');
+          } else {
+            updateCloudStatusBadge('synced', 'Cloud Connected');
+          }
+        } else {
+          updateCloudStatusBadge('local', 'Local Storage');
+        }
+      } catch (err) {
+        console.warn('Cloud sync offline or using local cache:', err);
+        updateCloudStatusBadge('local', 'Local Storage');
+      } finally {
+        isCloudSyncing = false;
+      }
     }
 
-    // Global Filter States
-    let selectedClassFilter = 'All';
-    let selectedSectionFilter = 'All';
-    let searchQueryStr = '';
-    let selectedExpenseCategory = 'All';
+    async function saveToCloudDB() {
+      saveToLocalStorageQuietly();
+      try {
+        updateCloudStatusBadge('syncing', 'Saving...');
+        const payload = {
+          STUDENTS,
+          PAYMENTS,
+          EXPENSES,
+          STAFF,
+          ANNOUNCEMENTS,
+          LEAVES,
+          ATTENDANCE,
+          last_modified: new Date().toISOString()
+        };
+        const response = await fetch(CLOUD_DB_ENDPOINT, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (response.ok) {
+          updateCloudStatusBadge('synced', 'Live Cloud Synced');
+        } else {
+          updateCloudStatusBadge('local', 'Saved Locally');
+        }
+      } catch (err) {
+        console.warn('Could not save to Cloud DB endpoint:', err);
+        updateCloudStatusBadge('local', 'Saved Locally');
+      }
+    }
 
-    function saveToLocalStorage() {
+    function saveToLocalStorageQuietly() {
       localStorage.setItem('LW_STUDENTS', JSON.stringify(STUDENTS));
       localStorage.setItem('LW_ATTENDANCE', JSON.stringify(ATTENDANCE));
       localStorage.setItem('LW_PAYMENTS', JSON.stringify(PAYMENTS));
@@ -263,6 +313,61 @@
       localStorage.setItem('LW_STAFF', JSON.stringify(STAFF));
       localStorage.setItem('LW_ANNOUNCEMENTS', JSON.stringify(ANNOUNCEMENTS));
       localStorage.setItem('LW_LEAVES', JSON.stringify(LEAVES));
+    }
+
+    function saveToLocalStorage() {
+      saveToLocalStorageQuietly();
+      saveToCloudDB();
+    }
+
+    function exportDatabaseJSON() {
+      const backupData = { STUDENTS, PAYMENTS, EXPENSES, STAFF, ANNOUNCEMENTS, LEAVES, ATTENDANCE, backup_date: new Date().toISOString() };
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+      const anchor = document.createElement('a');
+      anchor.setAttribute("href", dataStr);
+      anchor.setAttribute("download", `little_wings_erp_backup_${getTodayDateStr()}.json`);
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+    }
+
+    function triggerImportDatabaseJSON() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      input.onchange = e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = async event => {
+          try {
+            const data = JSON.parse(event.target.result);
+            if (data.STUDENTS) STUDENTS = data.STUDENTS;
+            if (data.PAYMENTS) PAYMENTS = data.PAYMENTS;
+            if (data.EXPENSES) EXPENSES = data.EXPENSES;
+            if (data.STAFF) STAFF = data.STAFF;
+            if (data.ANNOUNCEMENTS) ANNOUNCEMENTS = data.ANNOUNCEMENTS;
+            if (data.LEAVES) LEAVES = data.LEAVES;
+            if (data.ATTENDANCE) ATTENDANCE = data.ATTENDANCE;
+            saveToLocalStorage();
+            renderCurrentView();
+            alert("✅ ERP Database restored successfully across all modules!");
+          } catch (err) {
+            alert("❌ Failed to parse database file. Please ensure it is a valid JSON backup.");
+          }
+        };
+        reader.readAsText(file);
+      };
+      input.click();
+    }
+
+    function updateCloudEndpointUrl() {
+      const input = document.getElementById('cloudEndpointInput');
+      if (!input || !input.value.trim()) return;
+      CLOUD_DB_ENDPOINT = input.value.trim();
+      localStorage.setItem('LW_CLOUD_DB_ENDPOINT', CLOUD_DB_ENDPOINT);
+      saveToCloudDB();
+      alert("✅ Cloud Database Endpoint saved successfully! Syncing live data...");
     }
 
     const NAV_ITEMS = {
@@ -1054,36 +1159,82 @@
       ];
 
       container.innerHTML = `
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden space-y-4">
-          <div class="p-4 border-b border-slate-100 bg-slate-50">
-            <h3 class="font-extrabold text-slate-900 text-base">Role-Based Access Control (RBAC) Permissions Matrix</h3>
-            <p class="text-xs text-slate-500">Security permissions for Admin, Department Heads (HOD), and Classroom Teachers</p>
+        <div class="space-y-6">
+          <!-- Cloud Database & Multi-User Synchronization Card -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+            <div class="border-b pb-3 flex justify-between items-center flex-wrap gap-2">
+              <div>
+                <h3 class="font-extrabold text-slate-900 text-base flex items-center space-x-2">
+                  <i data-lucide="cloud-lightning" class="w-5 h-5 text-sky-600"></i>
+                  <span>Multi-User Cloud Database Synchronization</span>
+                </h3>
+                <p class="text-xs text-slate-500">Real-time database sync across all staff members, computers, and mobile devices</p>
+              </div>
+              <span class="bg-emerald-100 text-emerald-800 text-xs px-3 py-1 rounded-full font-bold">🟢 Live Realtime Sync</span>
+            </div>
+
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">Cloud Database Endpoint (Firebase / REST Store URL):</label>
+                <div class="flex space-x-2">
+                  <input id="cloudEndpointInput" type="text" value="${CLOUD_DB_ENDPOINT}" class="flex-1 p-2.5 border rounded-xl text-xs font-mono outline-none focus:ring-2 focus:ring-sky-500" placeholder="https://your-firebase-project.firebaseio.com/store.json" />
+                  <button onclick="updateCloudEndpointUrl()" class="bg-sky-600 hover:bg-sky-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow">Save Endpoint</button>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-1">All additions, edits, attendance, and fee receipts automatically sync to this shared endpoint in real-time every 12 seconds.</p>
+              </div>
+
+              <div class="pt-3 border-t flex flex-wrap gap-3">
+                <button onclick="fetchFromCloudDB()" class="bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded-xl text-xs font-extrabold shadow flex items-center space-x-1.5">
+                  <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                  <span>Force Cloud Sync Now</span>
+                </button>
+
+                <button onclick="exportDatabaseJSON()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-extrabold shadow flex items-center space-x-1.5">
+                  <i data-lucide="download" class="w-4 h-4"></i>
+                  <span>Export Full Backup (JSON)</span>
+                </button>
+
+                <button onclick="triggerImportDatabaseJSON()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-xs font-extrabold shadow flex items-center space-x-1.5">
+                  <i data-lucide="upload" class="w-4 h-4"></i>
+                  <span>Import / Restore Backup (JSON)</span>
+                </button>
+              </div>
+            </div>
           </div>
 
-          <div class="overflow-x-auto p-4 pt-0">
-            <table class="w-full text-left text-sm text-slate-600">
-              <thead class="bg-slate-100 text-slate-700 font-bold text-xs uppercase tracking-wider">
-                <tr>
-                  <th class="p-4">ERP Module</th>
-                  <th class="p-4">👑 Admin (Principal / Owner)</th>
-                  <th class="p-4">🎓 HOD (Department Head)</th>
-                  <th class="p-4">👩‍🏫 Classroom Teacher</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100">
-                ${permissions.map(p => `
-                  <tr class="hover:bg-slate-50">
-                    <td class="p-4 font-bold text-slate-800">${p.module}</td>
-                    <td class="p-4"><span class="bg-sky-100 text-sky-700 px-2 py-0.5 rounded text-xs font-bold">${p.admin}</span></td>
-                    <td class="p-4"><span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-xs font-bold">${p.hod}</span></td>
-                    <td class="p-4"><span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded text-xs font-bold">${p.teacher}</span></td>
+          <!-- RBAC Matrix Card -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden space-y-4">
+            <div class="p-4 border-b border-slate-100 bg-slate-50">
+              <h3 class="font-extrabold text-slate-900 text-base">Role-Based Access Control (RBAC) Permissions Matrix</h3>
+              <p class="text-xs text-slate-500">Security permissions for Admin, Department Heads (HOD), and Classroom Teachers</p>
+            </div>
+
+            <div class="overflow-x-auto p-4 pt-0">
+              <table class="w-full text-left text-sm text-slate-600">
+                <thead class="bg-slate-100 text-slate-700 font-bold text-xs uppercase tracking-wider">
+                  <tr>
+                    <th class="p-4">ERP Module</th>
+                    <th class="p-4">👑 Admin (Principal / Owner)</th>
+                    <th class="p-4">🎓 HOD (Department Head)</th>
+                    <th class="p-4">👩‍🏫 Classroom Teacher</th>
                   </tr>
-                `).join('')}
-              </tbody>
-            </table>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  ${permissions.map(p => `
+                    <tr class="hover:bg-slate-50">
+                      <td class="p-4 font-bold text-slate-800">${p.module}</td>
+                      <td class="p-4"><span class="bg-sky-100 text-sky-700 px-2 py-0.5 rounded text-xs font-bold">${p.admin}</span></td>
+                      <td class="p-4"><span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-xs font-bold">${p.hod}</span></td>
+                      <td class="p-4"><span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded text-xs font-bold">${p.teacher}</span></td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       `;
+      lucide.createIcons();
     }
 
     function renderAttendanceView(container) {
@@ -1962,10 +2113,15 @@
       modalOverlay.classList.add('hidden');
     }
 
-    // Initialize Dashboard on Load
+    // Initialize Dashboard & Cloud DB Engine on Load
     window.onload = function() {
       renderSidebar();
       renderCurrentView();
+      fetchFromCloudDB();
+      // Auto-Sync Polling across all connected devices and users every 12 seconds
+      setInterval(function() {
+        fetchFromCloudDB(true);
+      }, 12000);
     };
   </script>
 </body>
