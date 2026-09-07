@@ -104,7 +104,7 @@
           <img src="logo.jpeg" alt="Logo" class="w-10 h-10 object-contain rounded-lg border border-slate-200 shadow-sm" />
           <div>
             <h3 class="font-extrabold text-xs text-slate-800 leading-tight">The Little Wings</h3>
-            <p class="text-[10px] text-sky-600 font-bold">Preschool ERP V1.2.0 (Clean Starter)</p>
+            <p class="text-[10px] text-sky-600 font-bold">Preschool ERP V1.2.1 (Hard Reset)</p>
           </div>
         </div>
 
@@ -165,11 +165,8 @@
 
     const getTodayDateStr = () => new Date().toISOString().split('T')[0];
 
-    // =========================================================================
-    // SAMPLE DEMO DATASETS FOR OPTIONAL RELOAD
-    // =========================================================================
-
-    const SAMPLE_STUDENTS = [
+    // OPTIONAL DEMO DATA PRESETS (Used ONLY when clicking "Load Demo Data")
+    const DEMO_PRESET_STUDENTS = [
       { id: 's101', student_id: 'LW-2026-001', name: 'Mohammad Aaliya Kulsum', class: 'Playgroup', section: 'A', dob: '2023-05-14', gender: 'Girl', status: 'Active', admission_date: '2026-04-01', father: 'Mohammad Hidayatulla', mother: 'Fatima Zohra', mobile: '9876543210', emergency: '9876543210', address: 'Main Campus Enclave', medical: 'None', pickup: 'Parents' },
       { id: 's102', student_id: 'LW-2026-002', name: 'Advait Nair', class: 'Nursery', section: 'A', dob: '2022-08-20', gender: 'Boy', status: 'Active', admission_date: '2026-04-02', father: 'Rajeshan Nair', mother: 'Priya Nair', mobile: '9845012345', emergency: '9845012345', address: 'Green Glen Layout', medical: 'None', pickup: 'Parents' },
       { id: 's103', student_id: 'LW-2026-003', name: 'Ananya Sharma', class: 'LKG', section: 'A', dob: '2021-11-10', gender: 'Girl', status: 'Active', admission_date: '2026-04-05', father: 'Amit Sharma', mother: 'Neha Sharma', mobile: '9731298765', emergency: '9731298765', address: 'Sunrise Apartments', medical: 'Asthma Mild', pickup: 'School Van' },
@@ -177,34 +174,46 @@
       { id: 's105', student_id: 'LW-2026-005', name: 'Zoya Khan', class: 'Playgroup', section: 'A', dob: '2023-01-25', gender: 'Girl', status: 'Active', admission_date: '2026-04-10', father: 'Tariq Khan', mother: 'Sana Khan', mobile: '9811223344', emergency: '9811223344', address: 'Lakeview Heights', medical: 'None', pickup: 'Parents' }
     ];
 
-    const SAMPLE_PAYMENTS = [
+    const DEMO_PRESET_PAYMENTS = [
       { id: 'p101', receipt_no: 'REC-2026-001', student_id: 'LW-2026-001', student_name: 'Mohammad Aaliya Kulsum', class: 'Playgroup - A', father: 'Mohammad Hidayatulla', mobile: '9876543210', fee_type: 'Tuition Fee', month: 'Term 1 (Apr - Aug)', total: 15000, paid: 15000, balance: 0, mode: 'UPI / PhonePe / GPay', date: '2026-04-01' },
       { id: 'p102', receipt_no: 'REC-2026-002', student_id: 'LW-2026-002', student_name: 'Advait Nair', class: 'Nursery - A', father: 'Rajeshan Nair', mobile: '9845012345', fee_type: 'Admission Fee', month: 'Annual 2026-27', total: 8000, paid: 8000, balance: 0, mode: 'Cash', date: '2026-04-02' },
       { id: 'p103', receipt_no: 'REC-2026-003', student_id: 'LW-2026-003', student_name: 'Ananya Sharma', class: 'LKG - A', father: 'Amit Sharma', mobile: '9731298765', fee_type: 'Annual Activity & Sports Fee', month: 'April 2026', total: 6000, paid: 4000, balance: 2000, mode: 'UPI / PhonePe / GPay', date: '2026-04-05' }
     ];
 
-    const SAMPLE_EXPENSES = [
+    const DEMO_PRESET_EXPENSES = [
       { id: 'e101', date: '2026-04-03', category: 'Toys & Teaching Materials', description: 'Montessori Wooden Learning Blocks & Puzzles', amount: 4500, mode: 'UPI', paid_by: 'System Admin', receipt: 'VOUCH-101' },
       { id: 'e102', date: '2026-04-10', category: 'Food & Snacks', description: 'Fresh Fruits & Organic Milk Supply (Monthly)', amount: 6200, mode: 'Cash', paid_by: 'HOD Operations', receipt: 'VOUCH-102' },
       { id: 'e103', date: '2026-04-15', category: 'Stationery', description: 'Drawing Books, Crayons, Watercolors & Worksheets', amount: 3800, mode: 'UPI', paid_by: 'System Admin', receipt: 'VOUCH-103' }
     ];
 
-    const SAMPLE_STAFF = [
+    const DEMO_PRESET_STAFF = [
       { id: 'st101', emp_id: 'EMP-001', name: 'Deepa Varma', role: 'Nursery Lead Teacher', class_assigned: 'Nursery-A', basic: 25000, allowances: 3000, overtime: 1000, advances: 0, deductions: 500, net: 28500, status: 'Paid' },
       { id: 'st102', emp_id: 'EMP-002', name: 'Shalini Rao', role: 'Playgroup Lead Teacher', class_assigned: 'Playgroup-A', basic: 24000, allowances: 2500, overtime: 500, advances: 0, deductions: 500, net: 26500, status: 'Paid' },
       { id: 'st103', emp_id: 'EMP-003', name: 'Anita Kulkarni', role: 'LKG Lead Teacher', class_assigned: 'LKG-A', basic: 26000, allowances: 3000, overtime: 0, advances: 1000, deductions: 500, net: 27500, status: 'Pending' }
     ];
 
-    const SAMPLE_ANNOUNCEMENTS = [
+    const DEMO_PRESET_ANNOUNCEMENTS = [
       { id: 'a101', title: '🎉 Annual Play School Sports Day 2026', content: 'Join us for fun activities, races, and awards on Friday, May 15th!', date: '2026-04-20' },
       { id: 'a102', title: '🎨 Parent-Teacher Orientation Meeting', content: 'Scheduled for Saturday morning 10:00 AM at the Main Campus Auditorium.', date: '2026-04-18' }
     ];
 
-    const SAMPLE_LEAVES = [
+    const DEMO_PRESET_LEAVES = [
       { id: 'l101', staff_name: 'Anita Kulkarni', role: 'LKG Lead Teacher', type: 'Casual Leave', dates: '2026-05-10 to 2026-05-11', reason: 'Family function attendance', status: 'Pending' }
     ];
 
-    // LOCAL STORAGE INITIALIZATION (Starts 100% Blank if Not Saved)
+    // HARD RESET ON V1.2.1: Purge all previously cached local storage sample data
+    if (!localStorage.getItem('LW_PURGED_V121')) {
+      localStorage.removeItem('LW_STUDENTS');
+      localStorage.removeItem('LW_PAYMENTS');
+      localStorage.removeItem('LW_EXPENSES');
+      localStorage.removeItem('LW_STAFF');
+      localStorage.removeItem('LW_ANNOUNCEMENTS');
+      localStorage.removeItem('LW_LEAVES');
+      localStorage.removeItem('LW_ATTENDANCE');
+      localStorage.setItem('LW_PURGED_V121', 'true');
+    }
+
+    // INITIALIZE DATASTORE TO 100% BLANK ARRAYS
     let STUDENTS = JSON.parse(localStorage.getItem('LW_STUDENTS')) || [];
     let PAYMENTS = JSON.parse(localStorage.getItem('LW_PAYMENTS')) || [];
     let EXPENSES = JSON.parse(localStorage.getItem('LW_EXPENSES')) || [];
@@ -214,42 +223,40 @@
     let ATTENDANCE = JSON.parse(localStorage.getItem('LW_ATTENDANCE')) || {};
 
     function resetAndLoadSampleData() {
-      STUDENTS = JSON.parse(JSON.stringify(SAMPLE_STUDENTS));
-      PAYMENTS = JSON.parse(JSON.stringify(SAMPLE_PAYMENTS));
-      EXPENSES = JSON.parse(JSON.stringify(SAMPLE_EXPENSES));
-      STAFF = JSON.parse(JSON.stringify(SAMPLE_STAFF));
-      ANNOUNCEMENTS = JSON.parse(JSON.stringify(SAMPLE_ANNOUNCEMENTS));
-      LEAVES = JSON.parse(JSON.stringify(SAMPLE_LEAVES));
+      STUDENTS = JSON.parse(JSON.stringify(DEMO_PRESET_STUDENTS));
+      PAYMENTS = JSON.parse(JSON.stringify(DEMO_PRESET_PAYMENTS));
+      EXPENSES = JSON.parse(JSON.stringify(DEMO_PRESET_EXPENSES));
+      STAFF = JSON.parse(JSON.stringify(DEMO_PRESET_STAFF));
+      ANNOUNCEMENTS = JSON.parse(JSON.stringify(DEMO_PRESET_ANNOUNCEMENTS));
+      LEAVES = JSON.parse(JSON.stringify(DEMO_PRESET_LEAVES));
 
       ATTENDANCE = {};
       STUDENTS.forEach(s => { ATTENDANCE[s.id] = 'Present'; });
 
       saveToLocalStorage();
       renderCurrentView();
-      alert("✅ Demo sample data loaded successfully! All students, fee receipts, staff, and expenses are populated.");
+      alert("✅ Demo sample data loaded successfully! All sample students, fee receipts, staff, and expenses populated.");
     }
 
     function clearAllErpData() {
-      if (confirm("⚠️ Are you sure you want to delete ALL ERP data? This will clear all students, staff, fee receipts, and expenses permanently.")) {
-        STUDENTS = [];
-        PAYMENTS = [];
-        EXPENSES = [];
-        STAFF = [];
-        ANNOUNCEMENTS = [];
-        LEAVES = [];
-        ATTENDANCE = {};
+      STUDENTS = [];
+      PAYMENTS = [];
+      EXPENSES = [];
+      STAFF = [];
+      ANNOUNCEMENTS = [];
+      LEAVES = [];
+      ATTENDANCE = {};
 
-        localStorage.removeItem('LW_STUDENTS');
-        localStorage.removeItem('LW_PAYMENTS');
-        localStorage.removeItem('LW_EXPENSES');
-        localStorage.removeItem('LW_STAFF');
-        localStorage.removeItem('LW_ANNOUNCEMENTS');
-        localStorage.removeItem('LW_LEAVES');
-        localStorage.removeItem('LW_ATTENDANCE');
+      localStorage.removeItem('LW_STUDENTS');
+      localStorage.removeItem('LW_PAYMENTS');
+      localStorage.removeItem('LW_EXPENSES');
+      localStorage.removeItem('LW_STAFF');
+      localStorage.removeItem('LW_ANNOUNCEMENTS');
+      localStorage.removeItem('LW_LEAVES');
+      localStorage.removeItem('LW_ATTENDANCE');
 
-        renderCurrentView();
-        alert("🗑️ All ERP data has been completely cleared. Your database is now 100% empty.");
-      }
+      renderCurrentView();
+      alert("🗑️ All ERP data has been completely cleared. Your database is now 100% empty across all modules.");
     }
 
     // Global Filter States
