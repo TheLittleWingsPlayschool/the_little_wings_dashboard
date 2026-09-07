@@ -65,16 +65,6 @@
 
     <!-- Active User & Role Selector Bar + Reset / Clear Data Buttons -->
     <div class="flex items-center space-x-2 mt-2 sm:mt-0">
-      <button onclick="clearAllErpData()" title="Wipe and Clear All ERP Data" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-xl text-xs font-extrabold shadow flex items-center space-x-1 border border-red-400">
-        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-        <span>Clear All Data</span>
-      </button>
-
-      <button onclick="resetAndLoadSampleData()" title="Reload Sample Demo Data into Local Storage" class="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-xl text-xs font-extrabold shadow flex items-center space-x-1 border border-emerald-400">
-        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-        <span>Load Demo Data</span>
-      </button>
-
       <div class="bg-sky-800/80 backdrop-blur border border-sky-400/30 px-3 py-1.5 rounded-xl flex items-center space-x-3 text-sm">
         <span class="text-sky-200 text-xs font-semibold uppercase tracking-wider">Logged in User:</span>
         <select id="userSelector" onchange="switchUser(this.value)" class="bg-white text-slate-900 font-bold px-3 py-1 rounded-lg text-sm outline-none cursor-pointer shadow-sm">
